@@ -8,6 +8,9 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.1%2B-ee4c2c?style=for-the-badge&logo=pytorch)](https://pytorch.org)
 [![CUDA](https://img.shields.io/badge/CUDA-11.8%2B-76b900?style=for-the-badge&logo=nvidia)](https://developer.nvidia.com/cuda-toolkit)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+<div align="center">
+  <img src="docs/assets/cli_preview.png" alt="Tolstoy CLI Preview" width="800px">
+</div>
 
 [**Документация**](#-документация) | [**Возможности**](#-ключевые-возможности) | [**Быстрый старт**](#-быстрый-старт) | [**Архитектура**](#-архитектура-v5)
 
