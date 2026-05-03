@@ -687,7 +687,7 @@ def menu_developer():
         elif choice == "1":
             print_section("ТЕСТ ТОКЕНИЗАТОРА", "🧪", C_ACCENT)
             try:
-                from tester import test_tokenizer
+                from scripts.tester import test_tokenizer
                 tokenizer_name = Prompt.ask(f"[{C_ACCENT}]Имя токенизатора (без _tokenizer.pkl)[/]", default="custom")
                 test_tokenizer(tokenizer_name)
             except Exception as e:
