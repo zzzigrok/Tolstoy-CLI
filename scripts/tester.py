@@ -1,10 +1,28 @@
 import os
+import sys
 import time
+import glob
+import re
+
+# Добавляем корневую директорию проекта в sys.path для корректных импортов
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from tokenizers.bpe_tokenizer import BPETokenizer
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich import box
+
+try:
+    import psutil
+    HAS_PSUTIL = True
+except ImportError:
+    HAS_PSUTIL = False
+
+# Настройка кодировки для Windows консоли
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding="utf-8", line_buffering=True)
 
 console = Console()
 
@@ -13,16 +31,26 @@ C_ERROR = "bold red"
 C_ACCENT = "bold cyan"
 C_DIM = "dim"
 
-def test_tokenizer(model_name="testt"):
-    tokenizer_path = f"{model_name}_tokenizer.pkl"
-    
-    if not os.path.exists(tokenizer_path):
-        console.print(f"[{C_ERROR}]❌ Файл {tokenizer_path} не найден![/]")
+def count_actual_words(text: str) -> int:
+    """Более точный подсчет слов (исключая пунктуацию)."""
+    return len(re.findall(r'[а-яА-ЯёЁa-zA-Z]+(?:-[а-яА-ЯёЁa-zA-Z]+)*|\w+', text))
+
+def test_tokenizer(model_name="custom"):
+    # Динамический поиск токенизатора
+    found_files = glob.glob(f"**/{model_name}_tokenizer.pkl", recursive=True)
+    tokenizer_path = None
+    for f in found_files:
+        if "venv" not in f and "__pycache__" not in f:
+            tokenizer_path = f
+            break
+
+    if not tokenizer_path:
+        console.print(f"[{C_ERROR}]❌ Файл для {model_name} не найден![/]")
         return
 
     console.print(f"[{C_DIM}]🔄 Загрузка токенизатора из {tokenizer_path}...[/]")
     tokenizer = BPETokenizer.load(tokenizer_path)
-    console.print(f"[{C_SUCCESS}]✅ Загружено. Размер словаря: {len(tokenizer.vocab)} токенов.[/]\n")
+    console.print(f"[{C_SUCCESS}]✅ Загружено. Размер словаря: {len(tokenizer.vocab):,} токенов.[/]\n")
 
     # Общая таблица результатов (статусы тестов)
     summary_table = Table(box=box.ROUNDED, border_style=C_DIM)
@@ -73,7 +101,7 @@ def test_tokenizer(model_name="testt"):
     case_table.add_column("Индексы токенов")
     case_table.add_column("Кол-во", justify="right")
     
-    cases = ["привет", "Привет", "ПРИВЕТ", "привет,", "привет!"]
+    cases = ["привет", "Привет", "ПРИВЕТ", "привет,", "привет!", "", "A"*50, " \n\t "]
     for c in cases:
         tokens = tokenizer.encode(c)
         case_table.add_row(c, str(tokens), str(len(tokens)))
@@ -86,7 +114,7 @@ def test_tokenizer(model_name="testt"):
         "обработки естественного языка. Токенизация — первый шаг к пониманию смысла."
     )
     tokens = tokenizer.encode(sample_text)
-    words = len(sample_text.split())
+    words = count_actual_words(sample_text)
     bytes_len = len(sample_text.encode("utf-8"))
     
     metrics_table = Table(box=box.ROUNDED, border_style=C_DIM, title="[bold white]Метрики компрессии текста[/]")
@@ -110,7 +138,8 @@ def test_tokenizer(model_name="testt"):
     console.print()
 
     # --- ТЕСТ 6: Бенчмарк ---
-    big_text = sample_text * 1000
+    big_text = sample_text * 10000  # Увеличена нагрузка до ~1.5 MB
+    
     start_enc = time.time()
     big_tokens = tokenizer.encode(big_text)
     enc_time = time.time() - start_enc
@@ -129,6 +158,12 @@ def test_tokenizer(model_name="testt"):
     
     perf_table.add_row("Кодирование (encode)", f"{len(big_text):,} симв.", f"{enc_time:.4f} с", f"{enc_speed:,.0f} ток/сек")
     perf_table.add_row("Декодирование (decode)", f"{len(big_tokens):,} ток.", f"{dec_time:.4f} с", "-")
+    
+    if HAS_PSUTIL:
+        process = psutil.Process(os.getpid())
+        mem_mb = process.memory_info().rss / (1024 * 1024)
+        perf_table.add_row("Использование RAM", "-", "-", f"{mem_mb:.1f} MB")
+        
     console.print(perf_table)
     console.print()
 
