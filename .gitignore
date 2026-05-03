@@ -158,7 +158,5 @@ cython_debug/
 # Project specific
 *.pth
 *.pkl
-tokenizers_battle.txt
-test_rich_parser.py
-test_rich_parser_2.py
-old/
+# tokenizers_battle.txt (перемещен в docs/research)
+# old/ (перемещен в docs/archive)
