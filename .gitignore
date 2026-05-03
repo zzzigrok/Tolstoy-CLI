@@ -158,5 +158,7 @@ cython_debug/
 # Project specific
 *.pth
 *.pkl
+checkpoints/
+nano_*.pth
 docs/research/tokenizers_battle.txt
 old/
