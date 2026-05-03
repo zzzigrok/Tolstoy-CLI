@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tolstoy-CLI | Искусственный Интеллект и Классика</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            purple: '#7e22ce',
+                            cyan: '#06b6d4',
+                            dark: '#030305',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #030305;
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Background Orbs */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -2;
+            overflow: hidden;
+            background: #030305;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.5;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .orb-1 { width: 500px; height: 500px; background: rgba(126, 34, 206, 0.3); top: -100px; left: -100px; }
+        .orb-2 { width: 600px; height: 600px; background: rgba(6, 182, 212, 0.2); bottom: -200px; right: -100px; animation-delay: -5s; }
+        .orb-3 { width: 400px; height: 400px; background: rgba(236, 72, 153, 0.2); top: 40%; left: 30%; animation-delay: -10s; }
+
+        /* Glassmorphism utilities */
+        .glass {
+            background: rgba(20, 20, 30, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-20deg);
+            transition: all 0.7s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 40px rgba(6, 182, 212, 0.15);
+        }
+
+        .glass-card:hover::before {
+            left: 200%;
+        }
+
+        .glass-nav {
+            background: rgba(3, 3, 5, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-rotate-slow {
+            animation: rotate-slow 40s linear infinite;
+        }
+
+        @keyframes spin-reverse {
+            from { transform: rotate(360deg); }
+            to { transform: rotate(0deg); }
+        }
+        .animate-spin-reverse {
+            animation: spin-reverse 50s linear infinite;
+        }
+
+        @keyframes dash-flow {
+            from { stroke-dashoffset: 20; }
+            to { stroke-dashoffset: 0; }
+        }
+        .animate-dash-flow {
+            animation: dash-flow 1.5s linear infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.3)); }
+            50% { filter: drop-shadow(0 0 25px rgba(126, 34, 206, 0.7)); }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 4s ease-in-out infinite;
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Complex Flying Books Animations */
+        @keyframes fly-path-1 {
+            0% { transform: translate(-10vw, 120vh) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.4; }
+            100% { transform: translate(110vw, -20vh) rotate(360deg) scale(1.2); opacity: 0; }
+        }
+        
+        @keyframes fly-path-2 {
+            0% { transform: translate(120vw, 80vh) rotate(0deg) scale(1); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translate(-20vw, 10vh) rotate(-180deg) scale(0.9); opacity: 0; }
+        }
+
+        @keyframes fly-path-3 {
+            0% { transform: translate(30vw, 120vh) rotate(20deg) scale(1.5); opacity: 0; }
+            10% { opacity: 0.2; }
+            90% { opacity: 0.2; }
+            100% { transform: translate(70vw, -20vh) rotate(-75deg) scale(1.1); opacity: 0; }
+        }
+
+        @keyframes fly-path-4 {
+            0% { transform: translate(80vw, 120vh) rotate(-45deg) scale(0.6); opacity: 0; }
+            10% { opacity: 0.25; }
+            90% { opacity: 0.25; }
+            100% { transform: translate(-10vw, -10vh) rotate(120deg) scale(0.8); opacity: 0; }
+        }
+
+        .book-fly {
+            position: absolute;
+            pointer-events: none;
+            z-index: 0;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.15));
+            will-change: transform, opacity;
+        }
+
+        /* Assignment of paths, timings, and blurs for depth */
+        .fly-1 { animation: fly-path-1 35s linear infinite; }
+        .fly-2 { animation: fly-path-2 45s linear infinite; animation-delay: -15s; }
+        .fly-3 { animation: fly-path-3 40s linear infinite; animation-delay: -5s; }
+        .fly-4 { animation: fly-path-4 50s linear infinite; animation-delay: -25s; left: 20%; filter: blur(4px); }
+        .fly-5 { animation: fly-path-2 38s linear infinite; animation-delay: -10s; top: 30%; filter: blur(2px); }
+        .fly-6 { animation: fly-path-3 48s linear infinite; animation-delay: -20s; left: -10%; filter: blur(6px); }
+        .fly-7 { animation: fly-path-1 55s linear infinite; animation-delay: -35s; left: 40%; filter: blur(1px); }
+        .fly-8 { animation: fly-path-4 42s linear infinite; animation-delay: -12s; right: -5%; filter: blur(5px); }
+        .fly-9 { animation: fly-path-2 60s linear infinite; animation-delay: -40s; bottom: -10%; filter: blur(3px); }
+        .fly-10 { animation: fly-path-3 33s linear infinite; animation-delay: -2s; left: 60%; filter: blur(8px); }
+        .fly-11 { animation: fly-path-1 47s linear infinite; animation-delay: -18s; right: 20%; filter: blur(2px); }
+        .fly-12 { animation: fly-path-4 39s linear infinite; animation-delay: -8s; left: 5%; filter: blur(1px); }
+
+        /* Text Gradients & Animations */
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .animated-gradient-text {
+            background: linear-gradient(to right, #ffffff, #c7d2fe, #22d3ee, #ffffff);
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 8s ease-in-out infinite;
+        }
+
+        .animated-gradient-accent {
+            background: linear-gradient(to right, #06b6d4, #a855f7, #ec4899, #06b6d4);
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 5s linear infinite;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .text-gradient-accent {
+            background: linear-gradient(135deg, #06b6d4 0%, #7e22ce 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Smooth UI Panel Transform */
+        .ui-panel {
+            transition: transform 0.1s ease-out;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-brand-purple selection:text-white">
+
+    <!-- Animated Background -->
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        
+        <!-- Detailed Flying Books -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <!-- Type 1: Detailed Open Book with Data Nodes -->
+            <svg class="book-fly fly-1 w-24 h-24 text-cyan-400/30" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M50 15 C 30 15, 15 25, 10 35 L 10 85 C 15 75, 30 65, 50 65 C 70 65, 85 75, 90 85 L 90 35 C 85 25, 70 15, 50 15 Z" fill="currentColor" fill-opacity="0.05" stroke-width="2"/>
+                <path d="M50 15 L 50 65" stroke-width="2"/>
+                <path d="M14 42 C 24 35, 38 31, 46 32" stroke-width="1.5" stroke-opacity="0.6"/>
+                <path d="M14 50 C 24 43, 38 39, 46 40" stroke-width="1.5" stroke-opacity="0.6"/>
+                <path d="M14 58 C 24 51, 38 47, 46 48" stroke-width="1.5" stroke-opacity="0.6"/>
+                <path d="M86 42 C 76 35, 62 31, 54 32" stroke-width="1.5" stroke-opacity="0.6"/>
+                <path d="M86 50 C 76 43, 62 39, 54 40" stroke-width="1.5" stroke-opacity="0.6"/>
+                <path d="M86 58 C 76 51, 62 47, 54 48" stroke-width="1.5" stroke-opacity="0.6"/>
+                <circle cx="25" cy="20" r="1.5" fill="#fff" class="animate-pulse"/>
+                <circle cx="75" cy="25" r="1" fill="#fff" class="animate-pulse"/>
+                <circle cx="50" cy="5" r="2" fill="#fff" fill-opacity="0.5"/>
+                <path d="M50 15 L 50 5" stroke-dasharray="2 2" stroke-width="1" stroke-opacity="0.5"/>
+                <path d="M25 20 L 15 10" stroke-dasharray="1 3" stroke-width="1" stroke-opacity="0.4"/>
+            </svg>
+            
+            <!-- Type 2: Heavy Classic Tome with Bookmark -->
+            <svg class="book-fly fly-2 w-32 h-32 text-purple-400/30" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 20 20 L 70 30 L 65 80 L 15 70 Z" fill="currentColor" fill-opacity="0.05" stroke-width="1.5"/>
+                <path d="M 15 70 L 65 80 L 70 75 L 20 65 Z" fill="currentColor" fill-opacity="0.3" stroke="none"/>
+                <path d="M 70 30 L 65 80 L 70 75 L 75 25 Z" fill="currentColor" fill-opacity="0.2" stroke="none"/>
+                <path d="M 25 15 L 75 25 L 70 75 L 20 65 Z" fill="currentColor" fill-opacity="0.15" stroke-width="2"/>
+                <line x1="24" y1="25" x2="74" y2="35" stroke-width="1" stroke-opacity="0.5"/>
+                <line x1="22" y1="45" x2="72" y2="55" stroke-width="1" stroke-opacity="0.5"/>
+                <path d="M 50 71 L 55 90 L 60 85 L 65 92 L 60 73" fill="#ec4899" fill-opacity="0.6" stroke="#ec4899" stroke-width="1"/>
+                <circle cx="47" cy="45" r="8" stroke-width="1" stroke-dasharray="2 2"/>
+                <circle cx="47" cy="45" r="3" fill="currentColor" fill-opacity="0.5"/>
+                <path d="M 47 37 L 47 53 M 39 45 L 55 45" stroke-width="0.5"/>
+            </svg>
+
+            <!-- Type 3: Isometric Digital Book Matrix -->
+            <svg class="book-fly fly-3 w-20 h-20 text-pink-400/30" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="50,40 85,55 50,70 15,55" fill="currentColor" fill-opacity="0.05" stroke-width="1.5"/>
+                <polygon points="15,55 50,70 50,80 15,65" fill="currentColor" fill-opacity="0.2" stroke-width="1.5"/>
+                <polygon points="85,55 50,70 50,80 85,65" fill="currentColor" fill-opacity="0.1" stroke-width="1.5"/>
+                <polygon points="50,25 80,40 50,55 20,40" fill="currentColor" fill-opacity="0.15" stroke-width="1.5" transform="translate(0, -5)"/>
+                <polygon points="20,40 50,55 50,60 20,45" fill="currentColor" fill-opacity="0.25" stroke-width="1.5" transform="translate(0, -5)"/>
+                <polygon points="80,40 50,55 50,60 80,45" fill="currentColor" fill-opacity="0.15" stroke-width="1.5" transform="translate(0, -5)"/>
+                <polygon points="50,10 75,25 50,40 25,25" fill="none" stroke-width="1.5" stroke-dasharray="3 3" transform="translate(0, -10)"/>
+                <path d="M50 40 L 50 10" stroke-width="1" stroke-dasharray="2 2" transform="translate(0, -10)"/>
+                <circle cx="50" cy="0" r="2" fill="#fff" class="animate-pulse"/>
+                <path d="M35 30 L 65 43 M 35 43 L 65 30" stroke-width="0.5" stroke-opacity="0.5" transform="translate(0, -5)"/>
+            </svg>
+
+            <!-- Type 4: Floating Holographic Manuscript -->
+            <svg class="book-fly fly-4 w-48 h-48 text-cyan-300/15" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M50 20 C 25 20, 10 35, 5 50 L 5 90 C 10 75, 25 60, 50 60 C 75 60, 90 75, 95 90 L 95 50 C 90 35, 75 20, 50 20 Z" fill="currentColor" fill-opacity="0.05" stroke-width="1.5"/>
+                <path d="M50 20 L 50 60" stroke-width="1.5" stroke-dasharray="4 4"/>
+                <path d="M 15 50 C 25 42, 40 38, 45 40" stroke-width="1" stroke-dasharray="2 2"/>
+                <path d="M 85 50 C 75 42, 60 38, 55 40" stroke-width="1" stroke-dasharray="2 2"/>
+            </svg>
+
+            <!-- Type 5: Mid-ground Floating Tome -->
+            <svg class="book-fly fly-5 w-20 h-20 text-white/20" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 25 15 L 75 25 L 70 75 L 20 65 Z" fill="currentColor" fill-opacity="0.1" stroke-width="2"/>
+                <path d="M 20 65 L 70 75 L 65 80 L 15 70 Z" fill="currentColor" fill-opacity="0.3" stroke="none"/>
+                <circle cx="47" cy="45" r="5" stroke-width="1"/>
+                <line x1="24" y1="25" x2="74" y2="35" stroke-width="1" stroke-opacity="0.5"/>
+            </svg>
+
+            <!-- Type 6: Abstract Flowing Scroll -->
+            <svg class="book-fly fly-6 w-28 h-28 text-blue-400/25" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 20 20 C 40 10, 60 30, 80 20 L 80 80 C 60 90, 40 70, 20 80 Z" fill="currentColor" fill-opacity="0.05" stroke-width="2"/>
+                <path d="M 30 35 C 45 28, 55 42, 70 35" stroke-width="1.5" stroke-dasharray="4 2 1 2"/>
+                <path d="M 30 45 C 45 38, 55 52, 70 45" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <path d="M 30 55 C 45 48, 55 62, 70 55" stroke-width="1.5" stroke-dasharray="2 4 4 2"/>
+                <path d="M 30 65 C 45 58, 55 72, 70 65" stroke-width="1.5" stroke-dasharray="5 2"/>
+                <path d="M 10 50 C 30 20, 70 80, 90 50" stroke-width="1" stroke-opacity="0.5" fill="none" class="animate-dash-flow" stroke-dasharray="10 10"/>
+            </svg>
+
+            <!-- Extra Books -->
+            <svg class="book-fly fly-7 w-16 h-16 text-purple-300/30" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="50,25 80,40 50,55 20,40" fill="currentColor" fill-opacity="0.1" stroke-width="1.5"/>
+                <polygon points="20,40 50,55 50,65 20,50" fill="currentColor" fill-opacity="0.25" stroke-width="1.5"/>
+                <polygon points="80,40 50,55 50,65 80,50" fill="currentColor" fill-opacity="0.1" stroke-width="1.5"/>
+                <circle cx="50" cy="40" r="3" fill="#fff" fill-opacity="0.5"/>
+            </svg>
+
+            <svg class="book-fly fly-8 w-24 h-24 text-indigo-400/20" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M50 15 C 30 15, 15 25, 10 35 L 10 85 C 15 75, 30 65, 50 65 C 70 65, 85 75, 90 85 L 90 35 C 85 25, 70 15, 50 15 Z" stroke-width="1.5"/>
+                <path d="M50 15 L 50 65" stroke-width="1.5"/>
+            </svg>
+
+            <svg class="book-fly fly-9 w-36 h-36 text-cyan-500/15" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 25 15 L 75 25 L 70 75 L 20 65 Z" fill="currentColor" fill-opacity="0.1" stroke-width="2"/>
+                <line x1="24" y1="25" x2="74" y2="35" stroke-width="1"/>
+            </svg>
+
+            <svg class="book-fly fly-10 w-48 h-48 text-pink-500/10" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 20 20 C 40 10, 60 30, 80 20 L 80 80 C 60 90, 40 70, 20 80 Z" stroke-width="1.5"/>
+                <path d="M 30 45 C 45 38, 55 52, 70 45" stroke-width="1" stroke-dasharray="3 3"/>
+            </svg>
+            
+            <svg class="book-fly fly-11 w-20 h-20 text-white/20" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M50 15 C 30 15, 15 25, 10 35 L 10 85 C 15 75, 30 65, 50 65 C 70 65, 85 75, 90 85 L 90 35 C 85 25, 70 15, 50 15 Z" fill="currentColor" fill-opacity="0.1" stroke-width="1.5"/>
+            </svg>
+
+            <svg class="book-fly fly-12 w-12 h-12 text-cyan-200/40" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="50,25 80,40 50,55 20,40" fill="currentColor" fill-opacity="0.2" stroke-width="1.5"/>
+                <polygon points="20,40 50,55 50,60 20,45" fill="currentColor" fill-opacity="0.4" stroke-width="1.5"/>
+                <polygon points="80,40 50,55 50,60 80,45" fill="currentColor" fill-opacity="0.1" stroke-width="1.5"/>
+            </svg>
+
+        </div>
+
+        <!-- Abstract SVG background connections -->
+        <svg class="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none animate-rotate-slow" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <g stroke="rgba(255,255,255,0.05)" stroke-width="1" fill="none">
+                <circle cx="500" cy="500" r="300" stroke-dasharray="4 12" />
+                <circle cx="500" cy="500" r="450" stroke-dasharray="2 20" />
+                <path d="M200,500 L800,500" stroke-dasharray="5 5" />
+                <path d="M500,200 L500,800" stroke-dasharray="5 5" />
+            </g>
+        </svg>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold tracking-tighter flex items-center gap-2 group">
+                <svg class="w-8 h-8 text-cyan-400 group-hover:animate-spin" style="animation-duration: 3s;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span>Tolstoy<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">-CLI</span></span>
+            </a>
+            <div class="hidden md:flex space-x-8 text-sm font-medium text-gray-300">
+                <a href="#about" class="hover:text-white transition-colors">О проекте</a>
+                <a href="#developer" class="hover:text-white transition-colors">Разработчик</a>
+                <a href="#philosophy" class="hover:text-white transition-colors">Философия</a>
+                <a href="#architecture" class="hover:text-white transition-colors">Архитектура</a>
+                <a href="#corpus" class="hover:text-white transition-colors">Корпус</a>
+            </div>
+            <a href="#github" class="hidden md:inline-flex glass px-5 py-2 rounded-full text-sm font-semibold hover:bg-white/10 transition-colors border border-white/10 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-20 px-6">
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
+            <div class="space-y-8 text-center lg:text-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border border-cyan-500/30 text-cyan-300 text-xs font-semibold tracking-wide uppercase mb-4">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    Образовательный Фреймворк
+                </div>
+                <h1 class="text-5xl lg:text-7xl font-bold leading-tight tracking-tight animated-gradient-text pb-2">
+                    Открывая <br/>
+                    <span class="font-serif italic animated-gradient-accent text-6xl lg:text-8xl pr-2 inline-block transform hover:scale-105 transition-transform duration-500">черный ящик</span> <br/>
+                    нейросетей
+                </h1>
+                <p class="text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-light">
+                    Tolstoy-CLI — это архитектурная лаборатория. Создавайте, обучайте и понимайте механизмы работы Больших Языковых Моделей (LLM) с нуля. Синтез глубокого машинного обучения и богатства классической литературы.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <a href="#about" class="px-8 py-4 rounded-xl bg-white text-black font-semibold hover:bg-gray-100 transition-colors text-center shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                        Погрузиться
+                    </a>
+                    <a href="#architecture" class="px-8 py-4 rounded-xl glass font-semibold hover:bg-white/5 transition-colors text-center border border-white/10">
+                        Документация
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Hero Abstract Illustration (SVG) -->
+            <div class="relative w-full aspect-square flex justify-center items-center">
+                <div class="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
+                
+                <div id="hero-physics-wrapper" class="w-full h-full max-w-lg flex justify-center items-center will-change-transform z-10" style="transform-style: preserve-3d;">
+                    <svg class="w-full h-full animate-float drop-shadow-2xl overflow-visible" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="core-glow" cx="0.5" cy="0.5" r="0.5">
+                                <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.5"/>
+                                <stop id="core-glow-stop" offset="40%" stop-color="#7e22ce" stop-opacity="0.2"/>
+                                <stop offset="100%" stop-color="#030305" stop-opacity="0"/>
+                            </radialGradient>
+                            <linearGradient id="link-grad-1" x1="50" y1="150" x2="150" y2="140">
+                                <stop offset="0%" stop-color="#06b6d4" stop-opacity="0"/>
+                                <stop offset="100%" stop-color="#06b6d4" stop-opacity="1"/>
+                            </linearGradient>
+                            <linearGradient id="link-grad-2" x1="250" y1="150" x2="150" y2="170">
+                                <stop offset="0%" stop-color="#ec4899" stop-opacity="0"/>
+                                <stop offset="100%" stop-color="#ec4899" stop-opacity="1"/>
+                            </linearGradient>
+                            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                                <feMerge>
+                                    <feMergeNode in="blur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                            <filter id="glow-strong" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="4" result="blur"/>
+                                <feMerge>
+                                    <feMergeNode in="blur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                            <path id="textRing" d="M 150, 150 m -110, 0 a 110,110 0 1,1 220,0 a 110,110 0 1,1 -220,0" />
+                        </defs>
+
+                        <g stroke="rgba(255,255,255,0.04)" stroke-width="0.5">
+                            <line x1="150" y1="10" x2="150" y2="290" />
+                            <line x1="10" y1="150" x2="290" y2="150" />
+                            <line x1="51" y1="51" x2="249" y2="249" />
+                            <line x1="51" y1="249" x2="249" y2="51" />
+                            <circle cx="150" cy="150" r="130" />
+                            <circle cx="150" cy="150" r="90" stroke-dasharray="2 4" />
+                            <circle cx="150" cy="150" r="50" />
+                        </g>
+
+                        <circle cx="150" cy="150" r="80" fill="url(#core-glow)" class="animate-pulse-slow"/>
+
+                        <text class="animate-spin-reverse uppercase tracking-[0.2em] font-mono text-[4.5px] fill-white/30" style="transform-origin: 150px 150px; animation-duration: 90s;">
+                            <textPath href="#textRing" startOffset="0%">
+                                ВОЙНА И МИР • АННА КАРЕНИНА • ПРЕСТУПЛЕНИЕ И НАКАЗАНИЕ • МАСТЕР И МАРГАРИТА • БРАТЬЯ КАРАМАЗОВЫ • ИДИОТ • ДАР • ЛОЛИТА • МЕРТВЫЕ ДУШИ •
+                            </textPath>
+                        </text>
+
+                        <g class="animate-pulse-slow">
+                            <circle cx="50" cy="130" r="4" fill="#06b6d4" filter="url(#glow)"/>
+                            <circle cx="35" cy="150" r="2.5" fill="#7e22ce" />
+                            <circle cx="65" cy="165" r="3" fill="#ec4899" filter="url(#glow)"/>
+                            <line x1="35" y1="150" x2="50" y2="130" stroke="rgba(6,182,212,0.4)" stroke-width="1"/>
+                            <line x1="50" y1="130" x2="65" y2="165" stroke="rgba(236,72,153,0.4)" stroke-width="1"/>
+                            <line x1="35" y1="150" x2="65" y2="165" stroke="rgba(126,34,206,0.3)" stroke-width="0.5"/>
+                            <path d="M50,130 Q100,110 120,125" fill="none" stroke="url(#link-grad-1)" stroke-width="1.5" stroke-dasharray="3 5" class="animate-dash-flow"/>
+                            <path d="M65,165 Q110,180 120,155" fill="none" stroke="url(#link-grad-1)" stroke-width="1" stroke-dasharray="2 4" class="animate-dash-flow" style="animation-delay: -0.5s;"/>
+                        </g>
+
+                        <g class="animate-pulse-slow" style="animation-delay: -2s;">
+                            <circle cx="260" cy="140" r="3" fill="#ec4899" />
+                            <circle cx="240" cy="175" r="4.5" fill="#7e22ce" filter="url(#glow)"/>
+                            <circle cx="270" cy="180" r="2" fill="#06b6d4" />
+                            <line x1="260" y1="140" x2="240" y2="175" stroke="rgba(126,34,206,0.5)" stroke-width="1"/>
+                            <line x1="240" y1="175" x2="270" y2="180" stroke="rgba(6,182,212,0.3)" stroke-width="0.5"/>
+                            <path d="M240,175 Q190,190 180,155" fill="none" stroke="url(#link-grad-2)" stroke-width="1.5" stroke-dasharray="4 4" class="animate-dash-flow" style="animation-direction: reverse;"/>
+                        </g>
+
+                        <g class="animate-rotate-slow" style="transform-origin: 150px 150px; animation-duration: 40s;">
+                            <circle cx="150" cy="150" r="118" stroke="rgba(6, 182, 212, 0.2)" stroke-width="1" stroke-dasharray="1 8"/>
+                            <circle cx="150" cy="32" r="3" fill="#06b6d4" filter="url(#glow)"/>
+                        </g>
+
+                        <g class="animate-float" style="animation-duration: 8s;">
+                            <line x1="150" y1="195" x2="150" y2="85" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="2 2" />
+                            <line x1="100" y1="170" x2="100" y2="110" stroke="rgba(255,255,255,0.1)" stroke-width="0.5" />
+                            <line x1="200" y1="170" x2="200" y2="110" stroke="rgba(255,255,255,0.1)" stroke-width="0.5" />
+
+                            <polygon points="150,195 200,170 150,145 100,170" fill="rgba(6,182,212,0.08)" stroke="#06b6d4" stroke-width="1.2" />
+                            <path d="M100,170 L100,174 L150,199 L200,174 L200,170 M150,195 L150,199" stroke="#06b6d4" stroke-width="1" fill="none" opacity="0.4"/>
+                            <circle cx="150" cy="170" r="2" fill="#06b6d4" filter="url(#glow)"/>
+                            <circle cx="130" cy="180" r="1.5" fill="#fff" opacity="0.5"/>
+                            <circle cx="170" cy="160" r="1.5" fill="#fff" opacity="0.5"/>
+
+                            <polygon points="150,165 200,140 150,115 100,140" fill="rgba(126,34,206,0.15)" stroke="#7e22ce" stroke-width="1.5" />
+                            <path d="M100,140 L100,144 L150,169 L200,144 L200,140 M150,165 L150,169" stroke="#7e22ce" stroke-width="1" fill="none" opacity="0.5"/>
+                            <ellipse cx="150" cy="140" rx="12" ry="6" fill="rgba(255,255,255,0.1)" stroke="#fff" stroke-width="0.5" />
+                            <circle cx="150" cy="140" r="4" fill="#fff" filter="url(#glow-strong)" class="animate-pulse"/>
+                            <line x1="140" y1="135" x2="160" y2="145" stroke="#ec4899" stroke-width="1" stroke-dasharray="1 1"/>
+                            <line x1="160" y1="135" x2="140" y2="145" stroke="#06b6d4" stroke-width="1" stroke-dasharray="1 1"/>
+
+                            <polygon points="150,135 200,110 150,85 100,110" fill="rgba(236,72,153,0.08)" stroke="#ec4899" stroke-width="1.2" />
+                            <path d="M100,110 L100,114 L150,139 L200,114 L200,110 M150,135 L150,139" stroke="#ec4899" stroke-width="1" fill="none" opacity="0.4"/>
+                            
+                            <g class="animate-float" style="animation-duration: 4s;">
+                                <polygon points="150,65 165,57.5 150,50 135,57.5" fill="rgba(255,255,255,0.8)" stroke="#fff" stroke-width="0.5" filter="url(#glow)"/>
+                                <polygon points="150,65 165,57.5 165,60 150,67.5" fill="rgba(200,200,200,0.8)" />
+                                <polygon points="150,65 135,57.5 135,60 150,67.5" fill="rgba(150,150,150,0.8)" />
+                                <line x1="150" y1="68" x2="150" y2="85" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-dasharray="2 2" class="animate-dash-flow"/>
+                            </g>
+                        </g>
+
+                        <g id="tether-group" style="opacity: 0; transition: opacity 0.4s ease;">
+                            <path id="tether-line" d="M150,150 Q150,150 150,150" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="4 6" class="animate-dash-flow" filter="url(#glow)"/>
+                            <circle id="tether-end" cx="150" cy="150" r="3" fill="#fff" filter="url(#glow-strong)"/>
+                            <circle id="tether-end-ring" cx="150" cy="150" r="8" fill="none" stroke="#06b6d4" stroke-width="1" class="animate-pulse"/>
+                        </g>
+
+                        <g class="animate-float" style="animation-delay: -1.5s;">
+                            <g id="ui-panel-1" class="ui-panel">
+                                <rect x="185" y="80" width="105" height="28" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(126, 34, 206, 0.4)" stroke-width="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))"/>
+                                <path d="M 185 94 L 175 100 L 185 106" fill="none" stroke="rgba(126, 34, 206, 0.4)" stroke-width="1"/>
+                                <text x="193" y="93" font-family="monospace" font-size="6" fill="#c084fc" font-weight="bold">Self-Attention</text>
+                                <text x="193" y="102" font-family="monospace" font-size="5" fill="#e2e8f0">Attention(Q,K,V) =</text>
+                                <text x="193" y="108" font-family="monospace" font-size="5" fill="#67e8f9">softmax(QKᵀ/√d)V</text>
+                            </g>
+                        </g>
+                        
+                        <g class="animate-float" style="animation-delay: -3.5s;">
+                            <g id="ui-panel-2" class="ui-panel">
+                                <rect x="10" y="90" width="75" height="32" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(6, 182, 212, 0.4)" stroke-width="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))"/>
+                                <path d="M 85 106 L 95 112 L 85 118" fill="none" stroke="rgba(6, 182, 212, 0.4)" stroke-width="1"/>
+                                <text x="16" y="102" font-family="monospace" font-size="6" fill="#67e8f9" font-weight="bold">TRAINING STATS</text>
+                                <text x="16" y="112" font-family="monospace" font-size="5" fill="#94a3b8">Loss: <tspan fill="#4ade80">0.832</tspan></text>
+                                <text x="16" y="118" font-family="monospace" font-size="5" fill="#94a3b8">Step: <tspan fill="#facc15">14,200</tspan></text>
+                                <rect x="16" y="122" width="60" height="2" rx="1" fill="rgba(255,255,255,0.1)"/>
+                                <rect x="16" y="122" width="40" height="2" rx="1" fill="#06b6d4"/>
+                            </g>
+                        </g>
+
+                        <g class="animate-float" style="animation-delay: -5s;">
+                            <g id="ui-panel-3" class="ui-panel">
+                                <rect x="175" y="210" width="90" height="22" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(236, 72, 153, 0.4)" stroke-width="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))"/>
+                                <path d="M 175 221 L 165 210 L 175 200" fill="none" stroke="rgba(236, 72, 153, 0.4)" stroke-width="1"/>
+                                <text x="182" y="220" font-family="monospace" font-size="5" fill="#f472b6" font-weight="bold">BPE Tokenizer</text>
+                                <text x="182" y="227" font-family="monospace" font-size="5" fill="#cbd5e1">idx: [504, 219, 9031]</text>
+                            </g>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 relative z-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="glass-card p-10 md:p-16 text-center max-w-4xl mx-auto">
+                <svg class="w-12 h-12 mx-auto mb-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">Образовательная лаборатория LLM</h2>
+                <p class="text-gray-300 text-lg leading-relaxed mb-8">
+                    Tolstoy-CLI не является очередным "черным ящиком" для генерации текста. Это полнофункциональная, 
+                    но понятная архитектура, созданная для того, чтобы показать внутреннее устройство современных трансформеров. 
+                    От BPE токенизации до механизма внимания и Speculative Decoding — каждая строчка кода написана для изучения и модификации.
+                </p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-white/10 pt-8 mt-8">
+                    <div>
+                        <div class="text-3xl font-bold text-white mb-1">0%</div>
+                        <div class="text-sm text-gray-400">Скрытой магии</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-white mb-1">100%</div>
+                        <div class="text-sm text-gray-400">Читаемый код</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-white mb-1">PyTorch</div>
+                        <div class="text-sm text-gray-400">В основе</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-white mb-1">CLI</div>
+                        <div class="text-sm text-gray-400">Удобный интерфейс</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Developer Section -->
+    <section id="developer" class="py-32 relative z-10 overflow-hidden bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-brand-dark via-[#030305] to-[#030305]">
+        
+        <!-- Abstract background math/code elements -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden">
+            <!-- Floating Code Snippets, Math & Files -->
+            <div class="book-fly fly-1 text-cyan-500/20 font-mono text-3xl font-bold">{ }</div>
+            <div class="book-fly fly-2 text-purple-500/20 font-mono text-2xl">&lt;/&gt;</div>
+            <div class="book-fly fly-3 text-pink-500/20 font-mono text-sm tracking-widest">01001101 01001100</div>
+            
+            <svg class="book-fly fly-4 w-16 h-16 text-blue-400/10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"></path>
+                <polyline points="13 2 13 9 20 9"></polyline>
+                <text x="8" y="16" font-family="monospace" font-size="5" fill="currentColor" stroke="none">.py</text>
+            </svg>
+
+            <div class="book-fly fly-5 text-cyan-400/20 font-mono text-sm whitespace-pre">def forward(self, x):
+    return self.net(x)</div>
+
+            <div class="book-fly fly-6 text-yellow-500/20 font-mono text-xl">[B, T, C]</div>
+
+            <svg class="book-fly fly-7 w-20 h-20 text-purple-400/15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"></path>
+                <polyline points="13 2 13 9 20 9"></polyline>
+                <text x="5" y="16" font-family="monospace" font-size="4" fill="currentColor" stroke="none">.json</text>
+            </svg>
+
+            <div class="book-fly fly-8 text-pink-400/20 font-mono text-sm">loss.backward()</div>
+            <div class="book-fly fly-9 text-cyan-500/15 font-mono text-4xl">∑</div>
+            <div class="book-fly fly-10 text-white/10 font-mono text-sm">vocab_size = 50257</div>
+            <div class="book-fly fly-11 text-blue-300/20 font-serif text-3xl italic">ψ</div>
+            <div class="book-fly fly-12 text-purple-300/20 font-mono text-xs">optimizer.step()</div>
+
+            <!-- Original static blurs -->
+            <div class="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] -translate-y-1/2"></div>
+            <div class="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-cyan-600/10 rounded-full blur-[100px] -translate-y-1/2"></div>
+        </div>
+
+        <div class="max-w-5xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs font-semibold tracking-wide uppercase mb-4 backdrop-blur-sm">
+                    <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                    Создатель
+                </div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">Об авторе проекта</h2>
+                <div class="w-20 h-1 bg-gradient-to-r from-cyan-500 to-purple-500 mx-auto rounded-full"></div>
+            </div>
+
+            <!-- Terminal Window Card -->
+            <div class="glass-card p-px relative overflow-hidden group shadow-2xl hover:shadow-[0_20px_50px_rgba(6,182,212,0.15)] transition-shadow duration-500">
+                <!-- Outer Gradient Border Effect -->
+                <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/30 via-purple-500/10 to-pink-500/30 opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                <div class="relative bg-[#09090b] rounded-[1.4rem] overflow-hidden flex flex-col h-full">
+                    
+                    <!-- Terminal Header -->
+                    <div class="bg-[#0f172a] px-4 py-3 flex items-center justify-between border-b border-white/5 z-10">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500/80 shadow-[0_0_5px_rgba(239,68,68,0.5)]"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/80 shadow-[0_0_5px_rgba(234,179,8,0.5)]"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/80 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></div>
+                        </div>
+                        <div class="text-[11px] font-mono text-gray-500 flex items-center gap-2">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                            zzzigrok@tolstoy-lab: ~
+                        </div>
+                        <div class="w-10"></div> <!-- Placeholder to balance flex -->
+                    </div>
+                    
+                    <!-- Terminal Content -->
+                    <div class="p-8 md:p-12 flex flex-col md:flex-row gap-10 md:gap-16 items-center relative z-10">
+                        
+                        <!-- Avatar Container -->
+                        <div class="relative flex-shrink-0">
+                            <!-- Glowing aura -->
+                            <div class="absolute inset-0 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-full blur-2xl opacity-30 group-hover:opacity-60 transition-opacity duration-700 animate-pulse-slow"></div>
+                            
+                            <div class="w-40 h-40 rounded-full bg-black/50 border border-white/10 backdrop-blur-xl flex items-center justify-center relative z-10 overflow-hidden group/avatar cursor-default shadow-[inset_0_0_20px_rgba(255,255,255,0.05)]">
+                                <!-- Highly Detailed Cyber Avatar SVG -->
+                                <svg class="w-32 h-32 text-gray-300 transform group-hover/avatar:scale-110 group-hover/avatar:-translate-y-1 transition-all duration-500 drop-shadow-lg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    
+                                    <!-- Background floating data streams (Visible on hover) -->
+                                    <g class="opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-500 text-cyan-500/50" font-family="monospace" font-size="6px" font-weight="bold">
+                                        <text x="8" y="25">01</text>
+                                        <text x="8" y="35">10</text>
+                                        <text x="82" y="30">11</text>
+                                        <text x="82" y="40">00</text>
+                                        <!-- Rising data nodes -->
+                                        <circle cx="12" cy="50" r="1" fill="#06b6d4">
+                                            <animate attributeName="cy" values="60;10" dur="2s" repeatCount="indefinite"/>
+                                            <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+                                        </circle>
+                                        <circle cx="85" cy="60" r="1" fill="#c084fc">
+                                            <animate attributeName="cy" values="70;20" dur="2.5s" repeatCount="indefinite"/>
+                                            <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite"/>
+                                        </circle>
+                                    </g>
+
+                                    <!-- Companion Drone / Eye -->
+                                    <g class="transform group-hover/avatar:translate-x-1 group-hover/avatar:-translate-y-2 transition-transform duration-700">
+                                        <circle cx="16" cy="28" r="5" fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+                                        <circle cx="16" cy="28" r="2" fill="#06b6d4" class="animate-pulse"/>
+                                        <path d="M 11 28 A 5 5 0 0 1 21 28" fill="none" stroke="#06b6d4" stroke-width="1" stroke-dasharray="2 2" class="animate-spin-reverse" style="transform-origin: 16px 28px;"/>
+                                        <!-- Scanner beam -->
+                                        <polygon points="16,33 10,50 22,50" fill="#06b6d4" fill-opacity="0.1" class="opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300"/>
+                                    </g>
+
+                                    <!-- Cabling from head to back -->
+                                    <path d="M 69 35 Q 85 40 85 65" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+                                    <path d="M 69 38 Q 80 43 80 65" fill="none" stroke="#06b6d4" stroke-width="1" stroke-dasharray="2 2" class="animate-dash-flow"/>
+                                    <path d="M 31 35 Q 15 40 15 65" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+
+                                    <!-- Body / Hoodie -->
+                                    <path d="M 10 100 L 15 80 C 15 60, 30 55, 50 55 C 70 55, 85 60, 85 80 L 90 100 Z" fill="#0f172a" stroke="#334155" stroke-width="1.5"/>
+                                    <path d="M 32 55 C 32 70, 68 70, 68 55" fill="#020617" stroke="#1e293b" stroke-width="1"/>
+                                    <path d="M 40 65 L 40 82 M 60 65 L 60 80" stroke="#334155" stroke-width="1.5" stroke-dasharray="2 2" stroke-linecap="round"/>
+                                    
+                                    <!-- Cyber circuitry pattern on chest -->
+                                    <path d="M 45 75 L 50 82 L 55 75 L 55 70 L 45 70 Z" fill="#7e22ce" stroke="#c084fc" stroke-width="0.5" class="group-hover/avatar:fill-cyan-400 group-hover/avatar:stroke-cyan-200 transition-colors duration-500"/>
+                                    <path d="M 50 82 L 50 95" stroke="#7e22ce" stroke-width="1" class="group-hover/avatar:stroke-cyan-400 transition-colors duration-500"/>
+                                    <line x1="45" y1="75" x2="35" y2="75" stroke="#7e22ce" stroke-width="1" stroke-dasharray="1 1" class="group-hover/avatar:stroke-cyan-400"/>
+                                    <line x1="55" y1="75" x2="65" y2="75" stroke="#7e22ce" stroke-width="1" stroke-dasharray="1 1" class="group-hover/avatar:stroke-cyan-400"/>
+                                    
+                                    <!-- Shoulders / Cyber implants -->
+                                    <path d="M 15 75 L 25 75 L 25 80 L 15 80 Z" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+                                    <path d="M 85 75 L 75 75 L 75 80 L 85 80 Z" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+
+                                    <!-- Neck and Head Base -->
+                                    <path d="M 42 55 L 42 43 L 58 43 L 58 55 Z" fill="#475569"/>
+                                    <line x1="42" y1="46" x2="58" y2="46" stroke="#1e293b" stroke-width="1"/>
+                                    <line x1="42" y1="50" x2="58" y2="50" stroke="#1e293b" stroke-width="1"/>
+                                    <path d="M 33 25 C 33 8, 67 8, 67 25 L 67 40 C 67 52, 33 52, 33 40 Z" fill="#cbd5e1" class="group-hover/avatar:fill-white transition-colors duration-500"/>
+                                    <path d="M 33 35 C 40 46, 60 46, 67 35 L 67 40 C 60 52, 40 52, 33 40 Z" fill="#94a3b8"/>
+                                    
+                                    <!-- Cybernetic Hair / Implants -->
+                                    <path d="M 33 25 C 33 8, 67 8, 67 25 C 60 20, 40 20, 33 25 Z" fill="#1e293b"/>
+                                    <line x1="42" y1="14" x2="58" y2="14" stroke="#06b6d4" stroke-width="1.5" class="animate-pulse"/>
+                                    <line x1="46" y1="18" x2="54" y2="18" stroke="#c084fc" stroke-width="1" class="animate-pulse" style="animation-delay: 0.5s;"/>
+
+                                    <!-- Heavy Cyber Headphones -->
+                                    <path d="M 27 35 Q 27 6, 50 6 Q 73 6, 73 35" stroke="#1e293b" stroke-width="6" stroke-linecap="round" fill="none"/>
+                                    <path d="M 31 35 Q 31 10, 50 10 Q 69 10, 69 35" stroke="#0f172a" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                    <rect x="23" y="24" width="8" height="24" rx="4" fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+                                    <rect x="69" y="24" width="8" height="24" rx="4" fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+                                    <circle cx="27" cy="36" r="2.5" fill="#06b6d4" class="animate-pulse"/>
+                                    <circle cx="73" cy="36" r="2.5" fill="#06b6d4" class="animate-pulse"/>
+                                    <rect x="25" y="28" width="4" height="2" fill="#c084fc"/>
+                                    <rect x="71" y="28" width="4" height="2" fill="#c084fc"/>
+                                    <path d="M 29 45 Q 35 55 42 53" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round"/>
+                                    <circle cx="43" cy="52" r="1.5" fill="#06b6d4" class="animate-pulse"/>
+
+                                    <!-- High-Tech VR Visor (Enhanced) -->
+                                    <path d="M 30 26 C 40 30, 60 30, 70 26 L 73 38 C 60 44, 40 44, 27 38 Z" fill="#020617" stroke="#c084fc" stroke-width="1.5" class="group-hover/avatar:stroke-cyan-300 transition-colors duration-500"/>
+                                    <path d="M 32 29 C 45 32, 55 32, 68 29 L 71 36 C 55 40, 45 40, 29 36 Z" fill="#c084fc" fill-opacity="0.2" class="group-hover/avatar:fill-opacity-0.4 transition-all duration-500"/>
+                                    <line x1="38" y1="34" x2="44" y2="34" stroke="#06b6d4" stroke-width="1.5" class="animate-pulse"/>
+                                    <line x1="56" y1="34" x2="62" y2="34" stroke="#06b6d4" stroke-width="1.5" class="animate-pulse"/>
+                                    <circle cx="50" cy="33" r="1.5" fill="#ec4899"/>
+                                    <!-- Scanning laser -->
+                                    <line x1="28" y1="33" x2="72" y2="33" stroke="#06b6d4" stroke-width="0.5" class="animate-pulse opacity-50"/>
+                                    <!-- Glass reflections -->
+                                    <path d="M 34 30 L 40 36 M 58 30 L 64 36" stroke="#ffffff" stroke-width="1" stroke-opacity="0.4" stroke-linecap="round"/>
+
+                                    <!-- Floating HUDs (Visible on hover) -->
+                                    <g class="opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-700">
+                                        <!-- Left HUD -->
+                                        <rect x="8" y="15" width="20" height="14" rx="1" fill="#06b6d4" fill-opacity="0.1" stroke="#06b6d4" stroke-width="0.5"/>
+                                        <line x1="10" y1="18" x2="25" y2="18" stroke="#06b6d4" stroke-width="0.5"/>
+                                        <line x1="10" y1="22" x2="20" y2="22" stroke="#06b6d4" stroke-width="0.5"/>
+                                        <line x1="10" y1="26" x2="25" y2="26" stroke="#06b6d4" stroke-width="0.5"/>
+                                        <path d="M 28 22 L 32 30" stroke="#06b6d4" stroke-width="0.5" stroke-dasharray="1 1"/>
+                                        
+                                        <!-- Right HUD -->
+                                        <rect x="72" y="10" width="20" height="18" rx="1" fill="#c084fc" fill-opacity="0.1" stroke="#c084fc" stroke-width="0.5"/>
+                                        <circle cx="82" cy="19" r="4" fill="none" stroke="#c084fc" stroke-width="0.5" stroke-dasharray="1 1" class="animate-spin-reverse" style="animation-duration: 4s;"/>
+                                        <circle cx="82" cy="19" r="2" fill="#c084fc" fill-opacity="0.5"/>
+                                        <path d="M 72 20 L 68 30" stroke="#c084fc" stroke-width="0.5" stroke-dasharray="1 1"/>
+                                    </g>
+
+                                    <!-- Holographic Keyboard Desk (Multi-Layered) -->
+                                    <polygon points="5,105 95,105 80,75 20,75" fill="#06b6d4" fill-opacity="0.03" stroke="#06b6d4" stroke-width="0.5"/>
+                                    <polygon points="10,95 90,95 75,70 25,70" fill="#06b6d4" fill-opacity="0.1" stroke="#06b6d4" stroke-width="1.5" class="group-hover/avatar:fill-opacity-0.2 transition-all duration-500"/>
+                                    <polygon points="15,90 85,90 70,68 30,68" fill="#c084fc" fill-opacity="0.05" stroke="#c084fc" stroke-width="0.5" class="group-hover/avatar:fill-opacity-0.15 transition-all duration-500"/>
+                                    
+                                    <!-- Grid Lines -->
+                                    <line x1="28" y1="80" x2="72" y2="80" stroke="#06b6d4" stroke-width="0.5" opacity="0.5"/>
+                                    <line x1="22" y1="88" x2="78" y2="88" stroke="#06b6d4" stroke-width="0.5" opacity="0.5"/>
+                                    <line x1="40" y1="70" x2="32" y2="95" stroke="#06b6d4" stroke-width="0.5" opacity="0.5"/>
+                                    <line x1="60" y1="70" x2="68" y2="95" stroke="#06b6d4" stroke-width="0.5" opacity="0.5"/>
+
+                                    <!-- Animated typing hands & arms -->
+                                    <path d="M 16 78 Q 28 72 32 85" fill="none" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
+                                    <path d="M 84 78 Q 72 72 68 85" fill="none" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
+                                    <!-- Cyber Cuffs -->
+                                    <line x1="28" y1="80" x2="36" y2="82" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round"/>
+                                    <line x1="72" y1="80" x2="64" y2="82" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round"/>
+                                    <line x1="30" y1="78" x2="35" y2="79" stroke="#c084fc" stroke-width="1" stroke-linecap="round"/>
+                                    <line x1="70" y1="78" x2="65" y2="79" stroke="#c084fc" stroke-width="1" stroke-linecap="round"/>
+
+                                    <!-- Left Hand Fingers -->
+                                    <path d="M 32 85 L 36 88 M 30 86 L 33 90 M 28 87 L 30 91" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                                    <!-- Right Hand Fingers -->
+                                    <path d="M 68 85 L 64 88 M 70 86 L 67 90 M 72 87 L 70 91" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                                    
+                                    <!-- Glowing Fingertips tapping keys -->
+                                    <circle cx="36" cy="88" r="1.5" fill="#06b6d4" class="animate-pulse"/>
+                                    <circle cx="33" cy="90" r="1.5" fill="#06b6d4" class="animate-pulse" style="animation-delay: 0.1s;"/>
+                                    <circle cx="64" cy="88" r="1.5" fill="#06b6d4" class="animate-pulse" style="animation-delay: 0.2s;"/>
+                                    <circle cx="67" cy="90" r="1.5" fill="#06b6d4" class="animate-pulse" style="animation-delay: 0.3s;"/>
+
+                                    <!-- Individual Glowing Keys on Keyboard -->
+                                    <rect x="42" y="85" width="16" height="4" rx="1" fill="#06b6d4" fill-opacity="0.8" class="animate-pulse"/>
+                                    <rect x="30" y="82" width="8" height="3" rx="0.5" fill="#c084fc" fill-opacity="0.8" class="animate-pulse" style="animation-delay: 0.2s;"/>
+                                    <rect x="62" y="82" width="8" height="3" rx="0.5" fill="#c084fc" fill-opacity="0.8" class="animate-pulse" style="animation-delay: 0.5s;"/>
+                                    <rect x="36" y="91" width="6" height="4" rx="1" fill="#f472b6" fill-opacity="0.9"/>
+                                    <rect x="58" y="91" width="6" height="4" rx="1" fill="#f472b6" fill-opacity="0.9"/>
+                                    
+                                    <!-- Emitting Holographic Data Rings from Keyboard -->
+                                    <ellipse cx="50" cy="85" rx="35" ry="10" fill="none" stroke="#c084fc" stroke-width="0.5" stroke-dasharray="4 4" class="animate-ping opacity-0 group-hover/avatar:opacity-100" style="animation-duration: 3s;"/>
+                                    <ellipse cx="50" cy="70" rx="50" ry="15" fill="none" stroke="#06b6d4" stroke-width="0.5" stroke-opacity="0.4" class="animate-ping opacity-0 group-hover/avatar:opacity-100" style="animation-delay: 1.5s; animation-duration: 3s;"/>
+                                </svg>
+                                
+                                <!-- Scanline effect -->
+                                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/20 to-transparent w-full h-[2px] opacity-0 group-hover/avatar:opacity-100 animate-[dash-flow_2s_linear_infinite]"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Console Output (Bio) -->
+                        <div class="font-mono text-sm md:text-base flex-grow space-y-5 w-full">
+                            <div class="text-gray-300">
+                                <span class="text-green-400">➜</span> <span class="text-cyan-400">~</span> <span class="text-purple-400 ml-1">whoami</span>
+                            </div>
+                            <div class="text-white font-bold text-2xl tracking-wide pl-2 border-l-2 border-green-400/50">
+                                zzzigrok
+                            </div>
+                            
+                            <div class="text-gray-300 pt-2">
+                                <span class="text-green-400">➜</span> <span class="text-cyan-400">~</span> <span class="text-purple-400 ml-1">cat</span> profile.md
+                            </div>
+                            <div class="text-gray-400 leading-relaxed pl-2 border-l-2 border-white/10 space-y-4 text-sm md:text-base">
+                                <p>Разработчик, исследователь в области Machine Learning и создатель архитектуры <span class="text-cyan-300">Tolstoy-CLI</span>.</p>
+                                <p>Моя цель — разрушить барьер непонимания вокруг Больших Языковых Моделей (LLM). Этот проект был написан с нуля, чтобы показать, что ИИ — это не магия корпораций, а элегантная математика, доступная каждому.</p>
+                                <p class="text-gray-500 italic">"Код должен читаться как хорошая литература. Именно поэтому мы тренируем сеть на Толстом."</p>
+                            </div>
+                            
+                            <!-- Links -->
+                            <div class="pt-6 flex flex-wrap gap-4 items-center">
+                                <a href="https://github.com/zzzigrok" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-white group/btn">
+                                    <svg class="w-5 h-5 group-hover/btn:text-cyan-400 transition-colors" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                                    <span class="font-sans font-medium tracking-wide">GitHub Profile</span>
+                                </a>
+                                <div class="px-4 py-2 text-xs text-gray-500 font-mono border border-white/5 rounded-lg bg-[#030305]">
+                                    <span class="text-green-500 inline-block mr-2 animate-pulse">●</span>Status: Coding
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Philosophy Section -->
+    <section id="philosophy" class="py-32 relative z-10 overflow-hidden">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-5xl pointer-events-none z-0">
+            <div class="absolute top-0 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px] animate-pulse-slow"></div>
+            <div class="absolute bottom-0 left-10 w-96 h-96 bg-cyan-600/10 rounded-full blur-[100px] animate-pulse-slow" style="animation-delay: -3s;"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-12 gap-16 items-center relative z-10">
+            <div class="lg:col-span-7 order-2 lg:order-1 space-y-8">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">Философия проекта</h2>
+                    <div class="w-20 h-1 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full mb-8"></div>
+                    <p class="text-gray-300 text-lg leading-relaxed">
+                        Современный ИИ часто воспринимается как волшебство, доступное только мегакорпорациям. Наша цель — <strong class="text-white font-semibold">демократизация понимания</strong>.
+                    </p>
+                </div>
+
+                <div class="space-y-5">
+                    <div class="glass-card p-6 md:p-8 flex gap-6 items-start group hover:bg-white/[0.03] transition-all duration-500">
+                        <div class="w-14 h-14 rounded-2xl glass flex-shrink-0 flex items-center justify-center border border-purple-500/30 group-hover:border-purple-400/60 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(126,34,206,0.3)] transition-all duration-300 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent"></div>
+                            <svg class="w-7 h-7 text-purple-400 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">Практическое познание</h4>
+                            <p class="text-gray-400 text-sm md:text-base leading-relaxed">
+                                Изучение сложных концепций, таких как векторные вложения и механизмы внимания, происходит наиболее эффективно, когда вы <span class="text-gray-200">пишете код своими руками</span>, а не просто используете API.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card p-6 md:p-8 flex gap-6 items-start group hover:bg-white/[0.03] transition-all duration-500">
+                        <div class="w-14 h-14 rounded-2xl glass flex-shrink-0 flex items-center justify-center border border-cyan-500/30 group-hover:border-cyan-400/60 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all duration-300 relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent"></div>
+                            <svg class="w-7 h-7 text-cyan-400 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">Культурный синтез</h4>
+                            <p class="text-gray-400 text-sm md:text-base leading-relaxed">
+                                Используя величайшие произведения русской литературы для обучения, мы соединяем гуманитарную глубину и смыслы с холодной <span class="text-gray-200">математической элегантностью</span> архитектуры трансформеров.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая часть: Цитата (Арт-объект) -->
+            <div class="lg:col-span-5 order-1 lg:order-2 relative mt-8 lg:mt-0 group perspective-1000">
+                <div class="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-transparent to-cyan-500/30 rounded-[2.5rem] transform rotate-3 scale-105 blur-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-700 animate-pulse-slow"></div>
+                
+                <div class="glass-card p-10 md:p-14 relative z-10 border border-white/20 backdrop-blur-3xl rounded-[2rem] shadow-2xl overflow-hidden transform transition-all duration-500 hover:-translate-y-2">
+                    
+                    <div class="absolute top-8 right-8 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] uppercase tracking-widest text-gray-400 flex items-center gap-2 backdrop-blur-md">
+                        <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
+                        Inspiration
+                    </div>
+
+                    <svg class="absolute -top-10 -left-6 w-48 h-48 text-purple-500/10 transform -rotate-12 pointer-events-none" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                    </svg>
+                    
+                    <div class="relative z-10 mb-12 mt-6">
+                        <p class="font-serif text-4xl md:text-5xl leading-[1.2] animated-gradient-text italic mb-4">
+                            То, что я не могу создать, я не понимаю.
+                        </p>
+                        <p class="font-mono text-xs text-gray-500 tracking-wider">
+                            // What I cannot create, I do not understand.
+                        </p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row items-center gap-5 pt-8 border-t border-white/10 relative z-10">
+                        <div class="flex items-center gap-5 w-full">
+                            <div class="relative cursor-pointer group">
+                                <div class="absolute -inset-3 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full opacity-0 group-hover:opacity-40 blur-md transition-opacity duration-500"></div>
+                                <svg class="absolute -inset-2 w-[calc(100%+1rem)] h-[calc(100%+1rem)] text-cyan-400/40 animate-spin-reverse" viewBox="0 0 100 100" fill="none">
+                                    <circle cx="50" cy="50" r="48" stroke="currentColor" stroke-width="1" stroke-dasharray="8 4"></circle>
+                                    <circle cx="50" cy="2" r="2" fill="#06b6d4"></circle>
+                                </svg>
+                                <div class="w-16 h-16 rounded-full glass overflow-hidden border-2 border-white/20 relative z-10 group-hover:border-cyan-400 transition-colors duration-500 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+                                    <img src="https://upload.wikimedia.org/wikipedia/en/4/42/Richard_Feynman_Nobel.jpg" alt="Ричард Фейнман" class="w-full h-full object-cover filter grayscale group-hover:grayscale-0 scale-110 group-hover:scale-100 transition-all duration-700" />
+                                </div>
+                            </div>
+                            <div class="flex-grow">
+                                <h4 class="font-bold text-white text-xl tracking-wide group-hover:text-cyan-300 transition-colors">Ричард Фейнман</h4>
+                                <p class="text-sm text-gray-400 font-medium">Нобелевский лауреат по физике</p>
+                            </div>
+                            
+                            <!-- Детализированный SVG Человечек-физик -->
+                            <div class="hidden sm:block ml-auto relative group/physicist cursor-pointer">
+                                <div class="absolute inset-0 bg-cyan-500/0 group-hover/physicist:bg-cyan-500/20 rounded-full blur-xl transition-all duration-500"></div>
+
+                                <svg class="w-20 h-20 md:w-24 md:h-24 text-gray-300 transform transition-all duration-500 group-hover/physicist:scale-110 group-hover/physicist:-translate-y-2 drop-shadow-lg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <g class="opacity-0 group-hover/physicist:opacity-100 transition-opacity duration-500" fill="#22d3ee" font-family="serif" font-weight="bold" font-size="12px">
+                                        <text x="6" y="30">
+                                            ∑
+                                            <animate attributeName="y" values="30; 25; 30" dur="2s" repeatCount="indefinite" />
+                                        </text>
+                                        <text x="82" y="25">
+                                            ∫
+                                            <animate attributeName="y" values="25; 20; 25" dur="2.5s" repeatCount="indefinite" />
+                                        </text>
+                                        <text x="75" y="65">
+                                            ψ
+                                            <animate attributeName="opacity" values="0.3; 1; 0.3" dur="2s" repeatCount="indefinite" />
+                                        </text>
+                                        <text x="10" y="60">
+                                            π
+                                            <animate attributeName="opacity" values="0.3; 1; 0.3" dur="3s" repeatCount="indefinite" />
+                                        </text>
+                                    </g>
+
+                                    <rect x="32" y="22" width="36" height="40" rx="14" fill="#cbd5e1" class="group-hover/physicist:fill-white transition-colors duration-500"/>
+                                    <circle cx="30" cy="42" r="4" fill="#94a3b8"/>
+                                    <circle cx="70" cy="42" r="4" fill="#94a3b8"/>
+
+                                    <path d="M 28 35 Q 35 12 50 12 Q 65 12 72 35 Q 65 6 50 6 Q 35 6 28 35 Z" fill="#475569"/>
+                                    <path d="M 32 25 Q 40 2 55 12" stroke="#475569" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                    <path d="M 68 25 Q 60 2 45 12" stroke="#475569" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                    <path d="M 50 12 Q 55 0 65 15" stroke="#475569" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+                                    <rect x="34" y="36" width="14" height="10" rx="2" fill="#0f172a" stroke="#06b6d4" stroke-width="1.5" class="group-hover/physicist:stroke-cyan-300 transition-colors duration-500"/>
+                                    <rect x="52" y="36" width="14" height="10" rx="2" fill="#0f172a" stroke="#06b6d4" stroke-width="1.5" class="group-hover/physicist:stroke-cyan-300 transition-colors duration-500"/>
+                                    <line x1="48" y1="41" x2="52" y2="41" stroke="#06b6d4" stroke-width="1.5" class="group-hover/physicist:stroke-cyan-300 transition-colors duration-500"/>
+
+                                    <rect x="35" y="37" width="12" height="8" rx="1" fill="#06b6d4" fill-opacity="0.1" class="group-hover/physicist:fill-opacity-0.7 transition-all duration-500"/>
+                                    <rect x="53" y="37" width="12" height="8" rx="1" fill="#06b6d4" fill-opacity="0.1" class="group-hover/physicist:fill-opacity-0.7 transition-all duration-500"/>
+
+                                    <circle cx="43" cy="41" r="1.5" fill="#fff" class="opacity-40 group-hover/physicist:opacity-100 group-hover/physicist:animate-pulse"/>
+                                    <circle cx="61" cy="41" r="1.5" fill="#fff" class="opacity-40 group-hover/physicist:opacity-100 group-hover/physicist:animate-pulse"/>
+                                    
+                                    <path d="M 42 53 Q 50 58 58 53" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+
+                                    <path d="M 22 95 L 22 75 Q 50 60 78 75 L 78 95" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+                                    <polygon points="42,65 58,65 50,88" fill="#f8fafc"/>
+                                    <polygon points="48,65 52,65 54,85 50,92 46,85" fill="#7e22ce" class="group-hover/physicist:fill-purple-400 transition-colors duration-500"/>
+
+                                    <path d="M 42 65 L 32 88 L 42 95 M 58 65 L 68 88 L 58 95" stroke="#334155" stroke-width="1.5" fill="none"/>
+                                    
+                                    <line x1="62" y1="80" x2="72" y2="80" stroke="#334155" stroke-width="1.5"/>
+                                    <line x1="64" y1="74" x2="64" y2="80" stroke="#cbd5e1" stroke-width="1.5"/>
+                                    <line x1="68" y1="72" x2="68" y2="80" stroke="#06b6d4" stroke-width="1.5" class="group-hover/physicist:stroke-cyan-300"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="absolute -bottom-10 -right-10 w-40 h-40 border border-cyan-500/20 rounded-full animate-float pointer-events-none" style="animation-delay: -2s;"></div>
+                <div class="absolute -top-12 -right-6 w-20 h-20 border border-purple-500/30 rounded-full animate-float pointer-events-none"></div>
+                <div class="absolute top-1/2 -left-12 w-8 h-8 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full blur-sm animate-float pointer-events-none" style="animation-delay: -4s;"></div>
+                
+                <svg class="absolute top-20 -right-16 w-8 h-8 text-white/10 animate-pulse pointer-events-none" fill="none" stroke="currentColor" stroke-width="1">
+                    <path d="M12 2v20m10-10H2" />
+                </svg>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Architecture / Features Section -->
+    <section id="architecture" class="py-32 relative z-10 bg-white/[0.01] border-y border-white/[0.05] overflow-hidden">
+        <!-- Subtle grid background -->
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)] pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-20">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs font-semibold tracking-wide uppercase mb-4 backdrop-blur-sm">
+                    <svg class="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                    Глубокое обучение
+                </div>
+                <h2 class="text-4xl md:text-5xl font-bold mb-6">Архитектура Модели</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-lg">Полный спектр современных методов оптимизации и строения нейросетей, реализованных в чистом, модульном виде.</p>
+            </div>
+
+            <!-- Bento Grid Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[minmax(280px,auto)]">
+                
+                <!-- Card 1: MoE (Large Span 8) -->
+                <div class="glass-card p-8 md:p-10 group md:col-span-12 lg:col-span-8 relative overflow-hidden flex flex-col justify-end">
+                    <!-- Abstract Background Graphic -->
+                    <div class="absolute top-0 right-0 w-2/3 h-full opacity-30 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none">
+                        <svg class="w-full h-full text-cyan-500" viewBox="0 0 400 300" fill="none">
+                            <path d="M50 150 Q150 150 200 50 T350 50" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4" class="animate-dash-flow"/>
+                            <path d="M50 150 Q150 150 200 150 T350 150" stroke="currentColor" stroke-width="4"/>
+                            <path d="M50 150 Q150 150 200 250 T350 250" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4" class="animate-dash-flow"/>
+                            <circle cx="200" cy="50" r="6" fill="#030305" stroke="currentColor" stroke-width="3"/>
+                            <circle cx="200" cy="150" r="10" fill="#030305" stroke="currentColor" stroke-width="4" class="animate-pulse"/>
+                            <circle cx="200" cy="250" r="6" fill="#030305" stroke="currentColor" stroke-width="3"/>
+                        </svg>
+                        <div class="absolute inset-0 bg-gradient-to-r from-[#030305] via-transparent to-transparent"></div>
+                    </div>
+                    
+                    <div class="relative z-10 w-full max-w-md">
+                        <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 flex items-center justify-center mb-8 border border-cyan-500/20 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(6,182,212,0.1)] group-hover:shadow-[0_0_30px_rgba(6,182,212,0.3)]">
+                            <svg class="w-7 h-7 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                        </div>
+                        <h3 class="text-3xl font-bold mb-4 text-white group-hover:text-cyan-300 transition-colors">Mixture of Experts <span class="text-cyan-500 font-light">(MoE)</span></h3>
+                        <p class="text-gray-400 text-base md:text-lg leading-relaxed">Интеллектуальная маршрутизация токенов через специализированные экспертные слои. Позволяет радикально масштабировать количество параметров модели без линейного роста вычислительных затрат на инференс.</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: GQA (Span 4) -->
+                <div class="glass-card p-8 group md:col-span-6 lg:col-span-4 relative overflow-hidden flex flex-col justify-end">
+                    <div class="absolute top-0 right-0 w-full h-1/2 opacity-20 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none">
+                        <svg class="w-full h-full text-purple-500" viewBox="0 0 200 150" fill="none">
+                            <path d="M150 20 L150 130" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+                            <path d="M50 40 C 100 40, 100 75, 140 75" stroke="currentColor" stroke-width="2"/>
+                            <path d="M50 75 C 100 75, 100 75, 140 75" stroke="currentColor" stroke-width="2"/>
+                            <path d="M50 110 C 100 110, 100 75, 140 75" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-white">Grouped Query Attention</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Группировка запросов для использования общих ключей и значений. Снижает потребление VRAM.</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: RoPE (Span 4) -->
+                <div class="glass-card p-8 group md:col-span-6 lg:col-span-4 relative overflow-hidden flex flex-col justify-end">
+                    <div class="absolute -bottom-10 -right-10 w-48 h-48 opacity-10 group-hover:opacity-30 group-hover:rotate-45 transition-all duration-1000 pointer-events-none">
+                        <svg class="w-full h-full text-pink-500 animate-spin-reverse" style="animation-duration: 20s;" viewBox="0 0 100 100" fill="none">
+                            <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4"/>
+                            <circle cx="50" cy="50" r="30" stroke="currentColor" stroke-width="2" stroke-dasharray="10 10"/>
+                            <circle cx="50" cy="50" r="20" stroke="currentColor" stroke-width="1"/>
+                        </svg>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center mb-6 border border-pink-500/20 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-white">RoPE Embeddings</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Ротационное позиционное кодирование для безупречной экстраполяции длины контекста.</p>
+                    </div>
+                </div>
+
+                <!-- Card 4: Speculative Decoding (Span 4) -->
+                <div class="glass-card p-8 group md:col-span-6 lg:col-span-4 relative overflow-hidden flex flex-col justify-end">
+                    <div class="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-500/40 via-transparent to-transparent"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-white">Speculative Decoding</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Двухэтапная генерация: маленькая модель делает драфты, большая — параллельно их валидирует.</p>
+                    </div>
+                </div>
+
+                <!-- Card 5: xQuant (Span 4) -->
+                <div class="glass-card p-8 group md:col-span-6 lg:col-span-4 relative overflow-hidden flex flex-col justify-end">
+                    <div class="absolute right-4 top-8 w-24 h-24 grid grid-cols-4 gap-1 opacity-20 group-hover:opacity-50 transition-opacity duration-500">
+                        <!-- Tiny grid representing quantization blocks without script -->
+                        <div class="bg-green-500 rounded-sm opacity-100"></div>
+                        <div class="bg-green-500 rounded-sm opacity-40"></div>
+                        <div class="bg-green-500 rounded-sm opacity-100"></div>
+                        <div class="bg-green-500 rounded-sm opacity-40"></div>
+                        <div class="bg-green-500 rounded-sm opacity-40"></div>
+                        <div class="bg-green-500 rounded-sm opacity-100"></div>
+                        <div class="bg-green-500 rounded-sm opacity-100"></div>
+                        <div class="bg-green-500 rounded-sm opacity-40"></div>
+                        <div class="bg-green-500 rounded-sm opacity-100"></div>
+                        <div class="bg-green-500 rounded-sm opacity-100"></div>
+                        <div class="bg-green-500 rounded-sm opacity-40"></div>
+                        <div class="bg-green-500 rounded-sm opacity-100"></div>
+                        <div class="bg-green-500 rounded-sm opacity-40"></div>
+                        <div class="bg-green-500 rounded-sm opacity-100"></div>
+                        <div class="bg-green-500 rounded-sm opacity-40"></div>
+                        <div class="bg-green-500 rounded-sm opacity-100"></div>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center mb-6 border border-green-500/20 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3 text-white">Квантование (xQuant)</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Динамическое снижение разрядности весов до 8-bit/4-bit для запуска на обычных GPU.</p>
+                    </div>
+                </div>
+
+                <!-- Card 6: RMSNorm & SwiGLU (Wide Span 12) -->
+                <div class="glass-card p-8 md:p-10 group md:col-span-12 relative overflow-hidden flex flex-col justify-center">
+                    <div class="absolute inset-0 opacity-10 group-hover:opacity-30 transition-opacity duration-1000 pointer-events-none">
+                        <svg class="w-full h-full text-yellow-500" preserveAspectRatio="none" viewBox="0 0 1000 200" fill="none">
+                            <path d="M0 100 Q 250 50, 500 100 T 1000 100" stroke="currentColor" stroke-width="2" class="animate-dash-flow" stroke-dasharray="10 10"/>
+                            <path d="M0 100 Q 250 150, 500 100 T 1000 100" stroke="currentColor" stroke-width="1"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-8">
+                        <div class="w-14 h-14 rounded-2xl bg-yellow-500/10 flex-shrink-0 flex items-center justify-center border border-yellow-500/20 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+                            <svg class="w-7 h-7 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2 text-white">RMSNorm & SwiGLU</h3>
+                            <p class="text-gray-400 text-base leading-relaxed max-w-4xl">Связка Root Mean Square Normalization и функции активации Swish-Gated Linear Unit. Стандарт де-факто для современных архитектур уровня LLaMA, обеспечивающий стабильную и быструю сходимость градиентов.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Corpus Section -->
+    <section id="corpus" class="py-32 relative z-10 overflow-hidden bg-[#030305]">
+        <!-- Декоративные фоновые элементы -->
+        <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-cyan/5 rounded-full blur-[120px] pointer-events-none translate-x-1/3 -translate-y-1/3"></div>
+        <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-purple/5 rounded-full blur-[100px] pointer-events-none -translate-x-1/3 translate-y-1/3"></div>
+
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-20 items-center relative z-10">
+            
+            <!-- Левая колонка: Описание и Датасеты -->
+            <div class="space-y-8">
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-bold mb-4">Литературный Корпус</h2>
+                    <p class="text-gray-300 text-lg leading-relaxed">
+                        Модель не обучается на случайном шуме из интернета. Мы бережно собрали, очистили и токенизировали шедевры классической русской литературы. Это <span class="text-white font-semibold">чистый культурный код</span>, превращенный в многомерные тензоры.
+                    </p>
+                </div>
+                
+                <!-- Грид с датасетами авторов -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-8">
+                    
+                    <!-- Толстой -->
+                    <div class="glass-card p-5 border-l-4 border-l-cyan-500 hover:scale-[1.02] transition-transform duration-300 cursor-default group">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="font-bold text-white text-lg group-hover:text-cyan-300 transition-colors">Лев Толстой</span>
+                            <span class="text-xs font-mono bg-cyan-500/20 text-cyan-300 px-2 py-1 rounded-md">~18M tokens</span>
+                        </div>
+                        <p class="text-xs text-gray-400 font-serif italic mb-4">Война и мир, Анна Каренина, Воскресение</p>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full bg-cyan-400 w-[100%] opacity-80 shadow-[0_0_10px_#06b6d4]"></div>
+                        </div>
+                    </div>
+
+                    <!-- Достоевский -->
+                    <div class="glass-card p-5 border-l-4 border-l-purple-500 hover:scale-[1.02] transition-transform duration-300 cursor-default group">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="font-bold text-white text-lg group-hover:text-purple-300 transition-colors">Ф. Достоевский</span>
+                            <span class="text-xs font-mono bg-purple-500/20 text-purple-300 px-2 py-1 rounded-md">~15M tokens</span>
+                        </div>
+                        <p class="text-xs text-gray-400 font-serif italic mb-4">Преступление и наказание, Идиот, Бесы</p>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full bg-purple-400 w-[85%] opacity-80 shadow-[0_0_10px_#c084fc]"></div>
+                        </div>
+                    </div>
+
+                    <!-- Булгаков -->
+                    <div class="glass-card p-5 border-l-4 border-l-pink-500 hover:scale-[1.02] transition-transform duration-300 cursor-default group">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="font-bold text-white text-lg group-hover:text-pink-300 transition-colors">М. Булгаков</span>
+                            <span class="text-xs font-mono bg-pink-500/20 text-pink-300 px-2 py-1 rounded-md">~8M tokens</span>
+                        </div>
+                        <p class="text-xs text-gray-400 font-serif italic mb-4">Мастер и Маргарита, Белая гвардия</p>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full bg-pink-400 w-[50%] opacity-80 shadow-[0_0_10px_#f472b6]"></div>
+                        </div>
+                    </div>
+
+                    <!-- Набоков -->
+                    <div class="glass-card p-5 border-l-4 border-l-blue-500 hover:scale-[1.02] transition-transform duration-300 cursor-default group">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="font-bold text-white text-lg group-hover:text-blue-300 transition-colors">В. Набоков</span>
+                            <span class="text-xs font-mono bg-blue-500/20 text-blue-300 px-2 py-1 rounded-md">~6M tokens</span>
+                        </div>
+                        <p class="text-xs text-gray-400 font-serif italic mb-4">Дар, Лолита, Защита Лужина</p>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-400 w-[40%] opacity-80 shadow-[0_0_10px_#60a5fa]"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Правая колонка: Пайплайн обработки (Data Ingestion Pipeline) -->
+            <div class="relative h-[600px] w-full flex flex-col items-center justify-between py-6">
+                
+                <!-- Анимированный центральный луч (Data Stream) -->
+                <svg class="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-full pointer-events-none z-0" fill="none">
+                    <path d="M20 0 V600" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-dasharray="8 8" class="animate-dash-flow" style="animation-duration: 2s;"/>
+                    <circle cx="20" cy="0" r="3" fill="#06b6d4" class="shadow-[0_0_10px_#06b6d4]">
+                        <animate attributeName="cy" values="0;600" dur="2.5s" repeatCount="indefinite" />
+                        <animate attributeName="fill" values="#06b6d4;#c084fc;#f472b6" dur="2.5s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="20" cy="0" r="2" fill="#fff">
+                        <animate attributeName="cy" values="0;600" dur="3s" begin="1s" repeatCount="indefinite" />
+                    </circle>
+                </svg>
+
+                <!-- Блок 1: Source Text -->
+                <div class="glass-card p-6 w-full sm:w-4/5 relative z-10 animate-float shadow-[0_10px_30px_rgba(6,182,212,0.1)] border-t-cyan-500/30">
+                    <div class="flex items-center gap-3 mb-3 pb-2 border-b border-white/5">
+                        <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <span class="text-xs text-cyan-400 font-mono tracking-wider">dataset/tolstoy_anna.txt</span>
+                    </div>
+                    <div class="font-serif italic text-gray-200 text-lg text-center leading-relaxed">
+                        «Все счастливые семьи похожи друг на друга, каждая несчастливая семья несчастлива по-своему.»
+                    </div>
+                </div>
+
+                <!-- Блок 2: Tokenization -->
+                <div class="glass-card p-6 w-full sm:w-4/5 relative z-10 animate-float shadow-[0_10px_30px_rgba(126,34,206,0.15)] border-t-purple-500/30" style="animation-delay: 1.5s;">
+                    <div class="flex items-center gap-3 mb-3 pb-2 border-b border-white/5">
+                        <svg class="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        <span class="text-xs text-purple-400 font-mono tracking-wider">BPE_Tokenizer.encode()</span>
+                    </div>
+                    <div class="font-mono text-[11px] sm:text-xs text-gray-400 break-all leading-relaxed text-center">
+                        <span class="text-purple-300">[</span> 1405, 5920, 11432, 903, 11, 450, 19, 450, 11, 8042, 1143, 3105, 1143, 401 <span class="text-purple-300">]</span>
+                    </div>
+                </div>
+
+                <!-- Блок 3: PyTorch Model -->
+                <div class="glass-card p-6 w-full sm:w-4/5 relative z-10 animate-float shadow-[0_10px_30px_rgba(236,72,153,0.1)] border-t-pink-500/30" style="animation-delay: 0.5s;">
+                    <div class="flex items-center gap-3 mb-3 pb-2 border-b border-white/5">
+                        <svg class="w-4 h-4 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                        <span class="text-xs text-pink-400 font-mono tracking-wider">model.forward(idx)</span>
+                    </div>
+                    <div class="font-mono text-xs sm:text-sm text-gray-300 space-y-1">
+                        <div><span class="text-cyan-400">def</span> <span class="text-yellow-200">forward</span>(self, idx):</div>
+                        <div class="pl-4">x = self.tok_emb(idx)</div>
+                        <div class="pl-4">x = x + self.pos_emb(pos)</div>
+                        <div class="pl-4">
+                            <span class="text-pink-400">for</span> block <span class="text-pink-400">in</span> self.blocks:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;x = block(x)
+                        </div>
+                        <div class="pl-4"><span class="text-pink-400">return</span> self.lm_head(x)</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 bg-black/40 backdrop-blur-lg relative z-10">
+        <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between">
+            <div class="flex items-center gap-2 mb-4 md:mb-0">
+                <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span class="text-xl font-bold">Tolstoy-CLI</span>
+            </div>
+            
+            <p class="text-sm text-gray-500 text-center md:text-left">
+                Образовательный фреймворк для изучения языковых моделей.<br/>
+                &copy; 2026 Проект Tolstoy-CLI. Все права защищены (MIT License).
+            </p>
+            
+            <div class="mt-4 md:mt-0 flex gap-4">
+                <a href="#github" class="w-10 h-10 rounded-full glass flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const physicsWrapper = document.getElementById('hero-physics-wrapper');
+        const tetherGroup = document.getElementById('tether-group');
+        const tetherLine = document.getElementById('tether-line');
+        const tetherEnd = document.getElementById('tether-end');
+        const tetherEndRing = document.getElementById('tether-end-ring');
+        const coreGlowStop = document.getElementById('core-glow-stop');
+        
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let smoothedDx = 0;
+        let smoothedDy = 0;
+        
+        // Для 3D параллакса
+        let smNormX = 0;
+        let smNormY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateSVG() {
+            if (!physicsWrapper) return;
+            
+            const rect = physicsWrapper.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const rawDx = centerX - mouseX;
+            const rawDy = centerY - mouseY;
+            const dist = Math.sqrt(rawDx * rawDx + rawDy * rawDy);
+            
+            // Физика эластичного натяжения
+            const maxDist = 450;
+            let force = Math.max(0, 1 - dist / maxDist);
+            force = Math.pow(force, 1.5); 
+
+            const maxDisplacement = 60;
+            const targetDx = dist > 0 ? (rawDx / dist) * force * maxDisplacement : 0;
+            const targetDy = dist > 0 ? (rawDy / dist) * force * maxDisplacement : 0;
+
+            smoothedDx += (targetDx - smoothedDx) * 0.1;
+            smoothedDy += (targetDy - smoothedDy) * 0.1;
+
+            const stretchVelocity = Math.sqrt(smoothedDx * smoothedDx + smoothedDy * smoothedDy);
+            const angle = Math.atan2(smoothedDy, smoothedDx);
+
+            const scaleX = 1 + stretchVelocity * 0.003; 
+            const scaleY = 1 - stretchVelocity * 0.001;
+
+            // Расчеты для 3D наклона (Tilt)
+            const normX = (mouseX / window.innerWidth - 0.5) * 2; 
+            const normY = (mouseY / window.innerHeight - 0.5) * 2; 
+            smNormX += (normX - smNormX) * 0.1;
+            smNormY += (normY - smNormY) * 0.1;
+            
+            const tiltX = smNormY * -20; 
+            const tiltY = smNormX * 20;
+
+            // Комбинируем перемещение, 3D наклон и эластичное растяжение
+            physicsWrapper.style.transform = `perspective(1000px) translate3d(${smoothedDx}px, ${smoothedDy}px, 0) rotateX(${tiltX}deg) rotateY(${tiltY}deg) rotate(${angle}rad) scale(${scaleX}, ${scaleY}) rotate(${-angle}rad)`;
+
+            // Интерактивный луч (Tether) и свечение ядра
+            if (dist < 400 && dist > 20) {
+                tetherGroup.style.opacity = force;
+                
+                // Перевод в локальные координаты SVG (viewBox 300x300)
+                const svgScale = 300 / rect.width; 
+                const localMouseX = 150 - (rawDx * svgScale);
+                const localMouseY = 150 - (rawDy * svgScale);
+
+                // Создаем изогнутую кривую Бизье
+                const cpX = 150 + (localMouseX - 150) * 0.5;
+                const cpY = 150; 
+                
+                tetherLine.setAttribute('d', `M150,150 Q${cpX},${cpY} ${localMouseX},${localMouseY}`);
+                tetherEnd.setAttribute('cx', localMouseX);
+                tetherEnd.setAttribute('cy', localMouseY);
+                tetherEndRing.setAttribute('cx', localMouseX);
+                tetherEndRing.setAttribute('cy', localMouseY);
+                
+                if (coreGlowStop) {
+                    coreGlowStop.setAttribute('stop-opacity', (0.2 + force * 0.5).toFixed(2));
+                    coreGlowStop.setAttribute('stop-color', force > 0.5 ? '#06b6d4' : '#7e22ce');
+                }
+            } else {
+                tetherGroup.style.opacity = 0;
+                if (coreGlowStop) {
+                    coreGlowStop.setAttribute('stop-opacity', '0.2');
+                    coreGlowStop.setAttribute('stop-color', '#7e22ce');
+                }
+            }
+
+            // Параллакс внутренних UI панелей
+            const panel1 = document.getElementById('ui-panel-1');
+            const panel2 = document.getElementById('ui-panel-2');
+            const panel3 = document.getElementById('ui-panel-3');
+            if(panel1) panel1.style.transform = `translate(${smNormX * -10}px, ${smNormY * -10}px)`;
+            if(panel2) panel2.style.transform = `translate(${smNormX * -15}px, ${smNormY * -15}px)`;
+            if(panel3) panel3.style.transform = `translate(${smNormX * -5}px, ${smNormY * -5}px)`;
+
+            requestAnimationFrame(animateSVG);
+        }
+        
+        animateSVG();
+    </script>
+</body>
+</html>
