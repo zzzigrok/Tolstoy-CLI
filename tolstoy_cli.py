@@ -111,6 +111,7 @@ C_WARN = "#ffb300"
 C_DIM = "#6b7d85"
 C_PURPLE = "#b388ff"
 C_GOLD = "#ffd700"
+C_ERROR = "#ff1744"
 
 BANNER_LINES = [
     f"[{C_ACCENT}] ▄▄▄█████▓ ▒█████   ██▓     ██████ ▄▄▄█████▓ ▒█████ ▓██   ██▓[/]",
