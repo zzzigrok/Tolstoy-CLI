@@ -161,4 +161,5 @@ cython_debug/
 checkpoints/
 nano_*.pth
 docs/research/tokenizers_battle.txt
+docs/landing_prompt_template.md
 old/
