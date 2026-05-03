@@ -158,5 +158,5 @@ cython_debug/
 # Project specific
 *.pth
 *.pkl
-# tokenizers_battle.txt (перемещен в docs/research)
-# old/ (перемещен в docs/archive)
+docs/research/tokenizers_battle.txt
+old/
