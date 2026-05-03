@@ -1139,18 +1139,40 @@ def main():
                            border_style=C_ACCENT, box=box.ROUNDED, padding=(1, 2)))
         console.print()
         choice = Prompt.ask(f"[bold {C_ACCENT}]❯ Выберите команду[/]", choices=["1", "2", "3", "4", "5", "6"])
-        if choice == '1': menu_prepare_data()
-        elif choice == '2': menu_train_model()
-        elif choice == '3': menu_chat()
-        elif choice == '4': menu_system_info()
-        elif choice == '5': menu_developer()
-        elif choice == '6':
+        
+        try:
+            if choice == '1': menu_prepare_data()
+            elif choice == '2': menu_train_model()
+            elif choice == '3': menu_chat()
+            elif choice == '4': menu_system_info()
+            elif choice == '5': menu_developer()
+            elif choice == '6':
+                console.print(Panel(
+                    f"[bold {C_ACCENT}]Сеанс завершён. До встречи![/]\n[{C_DIM}]Tolstoy AI Studio v8.0.0[/]",
+                    box=box.ROUNDED, border_style=C_DIM, padding=(1, 3)
+                ))
+                break
+        except Exception as e:
+            console.print()
             console.print(Panel(
-                f"[bold {C_ACCENT}]Сеанс завершён. До встречи![/]\n[{C_DIM}]Tolstoy AI Studio v8.0.0[/]",
-                box=box.ROUNDED, border_style=C_DIM, padding=(1, 3)
+                f"[bold {C_ERROR}]ПРОИЗОШЛА КРИТИЧЕСКАЯ ОШИБКА[/]\n\n"
+                f"[white]{escape(str(e))}[/]\n\n"
+                f"[{C_DIM}]Тип: {type(e).__name__}[/]",
+                title="[bold red] ERROR [/]",
+                border_style="red",
+                box=box.ROUNDED,
+                padding=(1, 2)
             ))
-            break
+            if Confirm.ask(f"[{C_ACCENT}]Показать полный подробный отчёт (Traceback)?[/]", default=False):
+                console.print_exception(show_locals=True)
+            Prompt.ask(f"\n[{C_DIM}]Нажмите Enter для возврата в меню...[/]")
 
 if __name__ == "__main__":
-    try: main()
-    except KeyboardInterrupt: console.print(f"\n[bold {C_WARN}]Принудительный выход. ❌[/]")
+    try:
+        main()
+    except KeyboardInterrupt:
+        console.print(f"\n[bold {C_WARN}]Принудительный выход. ❌[/]")
+    except Exception as fatal_e:
+        console.print(f"\n[bold red]ФАТАЛЬНАЯ ОШИБКА ПРИ ЗАПУСКЕ: {fatal_e}[/]")
+        import traceback
+        traceback.print_exc()
