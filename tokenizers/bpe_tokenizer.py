@@ -9,6 +9,15 @@ BPETokenizer v10 (Production-Grade) — Оптимизированная реа�
 """
 import heapq
 import pickle
+
+class RestrictedUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden for security reasons")
+
+def safe_pickle_load(file):
+    return RestrictedUnpickler(file).load()
+
+import pickle
 import re
 import unittest
 from collections import Counter, defaultdict
@@ -311,7 +320,7 @@ class BPETokenizer:
     @classmethod
     def load(cls, filepath: str) -> "BPETokenizer":
         with open(filepath, "rb") as f:
-            data = pickle.load(f)
+            data = safe_pickle_load(f)
 
         tokenizer = cls()
         tokenizer.merges = data.get("merges", {})

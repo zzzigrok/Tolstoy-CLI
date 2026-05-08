@@ -6,6 +6,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 import os, pickle, time, csv, logging, traceback, math
 from datetime import datetime, timedelta
+
+class RestrictedUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden for security reasons")
+
+def safe_pickle_load(file):
+    return RestrictedUnpickler(file).load()
+
 from torch.utils.data import Dataset, DataLoader, Subset
 import sys
 
@@ -428,5 +436,5 @@ def finalize_training(results, model_name):
 
 def load_training_data(tokens_path):
     with open(tokens_path, 'rb') as f:
-        data = pickle.load(f)
+        data = safe_pickle_load(f)
     return torch.tensor(data, dtype=torch.long)

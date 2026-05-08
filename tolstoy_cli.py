@@ -83,7 +83,7 @@ logging.getLogger("TolstoyTrainer").setLevel(logging.ERROR)
 from models.tolstoy_model import TolstoyLLM_v5
 from tokenizers.bpe_tokenizer import BPETokenizer
 from training.trainer import Trainer, TrainingConfig
-from utils.model_utils import clean_text, get_effective_config, load_model_safe, estimate_tokenizer_quality
+from utils.model_utils import clean_text, safe_pickle_load, get_effective_config, load_model_safe, estimate_tokenizer_quality
 from utils.device import get_optimal_device, get_system_stats, check_flash_attention, optimize_cpu_threads
 
 from rich.console import Console
@@ -252,7 +252,7 @@ def autodetect_model_architecture(model_path, tokenizer_vocab_size):
     config_path = model_path.replace('.pth', '.conf')
     if os.path.exists(config_path):
         try:
-            with open(config_path, 'rb') as f: conf = pickle.load(f)
+            with open(config_path, 'rb') as f: conf = safe_pickle_load(f)
         except Exception: pass
     try:
         sd = torch.load(model_path, map_location='cpu', weights_only=True)
@@ -474,7 +474,7 @@ def menu_train_model():
     kv_mode = Prompt.ask(f"[{C_ACCENT}]Режим KV-cache[/]", choices=['int8kv', 'xquant', 'full'], default='int8kv')
 
     with console.status(f"[bold {C_ACCENT}]Загрузка тензоров в VRAM...[/]"):
-        with open(dataset_file, 'rb') as f: tokens_data = pickle.load(f)
+        with open(dataset_file, 'rb') as f: tokens_data = safe_pickle_load(f)
         tensor_data = torch.tensor(tokens_data, dtype=torch.long)
 
     device = get_optimal_device()

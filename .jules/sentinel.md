@@ -1,0 +1,4 @@
+## 2024-05-15 - Insecure Deserialization (Pickle)
+**Vulnerability:** The application used `pickle.load()` directly across the codebase (`tolstoy_cli.py`, `utils/model_utils.py`, `tokenizers/bpe_tokenizer.py`, `training/trainer.py`) to deserialize user-provided `.pkl` and config files.
+**Learning:** `pickle` allows arbitrary object execution during unpickling. Because `tolstoy_cli.py` interacts with local files and accepts file paths from users, an attacker could load a malicious file, leading to RCE (Remote Code Execution) or LPE (Local Privilege Escalation).
+**Prevention:** Always restrict the unpickling classes using a custom `RestrictedUnpickler` that overrides `find_class` to throw exceptions, preventing arbitrary instantiation of objects, or migrate to safer serialization formats like `json` or `safetensors`.

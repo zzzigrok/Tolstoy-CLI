@@ -4,6 +4,14 @@ import pickle
 import re
 import hashlib
 
+class RestrictedUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden for security reasons")
+
+def safe_pickle_load(file):
+    return RestrictedUnpickler(file).load()
+
+
 def clean_text(raw_text):
     """
     Очистка текста от мусора и нормализация с сохранением Unicode.
@@ -16,7 +24,7 @@ def clean_text(raw_text):
 def validate_pkl_file(filepath, expected_keys=None):
     if not os.path.exists(filepath): return False, None, f"Файл не найден: {filepath}"
     try:
-        with open(filepath, 'rb') as f: data = pickle.load(f)
+        with open(filepath, 'rb') as f: data = safe_pickle_load(f)
         return True, data, "OK"
     except Exception as e: return False, None, f"Ошибка чтения {filepath}: {str(e)}"
 
@@ -40,7 +48,7 @@ def load_model_config(filepath):
     if not os.path.exists(filepath):
         return None
     with open(filepath, 'rb') as f:
-        return pickle.load(f)
+        return safe_pickle_load(f)
 
 def get_effective_config(selected_preset, data_size_tokens=None):
     """Возвращает конфигурацию пресета. Единый источник истины — config/PRESETS."""
