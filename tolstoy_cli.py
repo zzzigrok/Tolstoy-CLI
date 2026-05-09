@@ -224,9 +224,11 @@ def extract_text_from_file(filepath):
 
 def interactive_file_selector(prompt_title, extensions, icon="📄"):
     files = []
-    for ext in extensions:
-        found = glob.glob(f"**/*{ext}", recursive=True)
-        files.extend([f for f in found if "venv" not in f and "__pycache__" not in f])
+    for root, dirs, filenames in os.walk(".", topdown=True):
+        dirs[:] = [d for d in dirs if "venv" not in d and "__pycache__" not in d]
+        for filename in filenames:
+            if any(filename.endswith(ext) for ext in extensions):
+                files.append(os.path.join(root, filename))
     if not files:
         console.print(f"[{C_DIM}]Файлы формата {', '.join(extensions)} не найдены.[/]")
         return Prompt.ask(f"[{C_ACCENT}]{prompt_title} (введите путь вручную)[/]")
@@ -322,9 +324,11 @@ def menu_prepare_data():
         if not os.path.isdir(target_dir):
             print_warn("Указанная директория не существует!"); sleep(2); return
         files_to_parse = []
-        for ext in SUPPORTED_EXTENSIONS:
-            found = glob.glob(os.path.join(target_dir, f"**/*{ext}"), recursive=True)
-            files_to_parse.extend([f for f in found if "venv" not in f and "__pycache__" not in f])
+        for root, dirs, filenames in os.walk(target_dir, topdown=True):
+            dirs[:] = [d for d in dirs if "venv" not in d and "__pycache__" not in d]
+            for filename in filenames:
+                if any(filename.endswith(ext) for ext in SUPPORTED_EXTENSIONS):
+                    files_to_parse.append(os.path.join(root, filename))
         if not files_to_parse:
             print_warn(f"В папке {target_dir} не найдено подходящих файлов!"); sleep(2); return
         print_step(f"Найдено файлов для сборки: [bold white]{len(files_to_parse)}[/bold white]")
