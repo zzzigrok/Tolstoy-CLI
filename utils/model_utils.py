@@ -4,12 +4,7 @@ import pickle
 import re
 import hashlib
 
-class RestrictedUnpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden for security reasons")
-
-def safe_pickle_load(file):
-    return RestrictedUnpickler(file).load()
+from .pickle_utils import RestrictedUnpickler, safe_pickle_load
 
 
 def clean_text(raw_text):
