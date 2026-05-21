@@ -2048,13 +2048,23 @@ button {
 }
 .bg-connections-svg {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 50%;
+  left: 50%;
+  width: 150vmax;
+  height: 150vmax;
+  margin-top: -75vmax;
+  margin-left: -75vmax;
   opacity: 0.2;
   pointer-events: none;
+  will-change: transform;
+  transform-origin: center center;
 }
+
+.bg-connections-svg circle,
+.bg-connections-svg path {
+  vector-effect: non-scaling-stroke;
+}
+
 
 /* Hero Section */
 .hero-badge {
