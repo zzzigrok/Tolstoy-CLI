@@ -134,32 +134,6 @@ function Developer() {
     <section className="section-shell developer-section-new" id="developer">
       {/* Abstract background math/code elements */}
       <div className="dev-math-background">
-        <div className="book-fly fly-1 text-cyan-500/20 font-mono text-3xl font-bold">{"{ }"}</div>
-        <div className="book-fly fly-2 text-purple-500/20 font-mono text-2xl">&lt;/&gt;</div>
-        <div className="book-fly fly-3 text-pink-500/20 font-mono text-sm tracking-widest">01001101 01001100</div>
-        
-        <svg className="book-fly fly-4 w-16 h-16 text-blue-400/10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" />
-          <polyline points="13 2 13 9 20 9" />
-          <text x="8" y="16" fontFamily="monospace" fontSize="5" fill="currentColor" stroke="none">.py</text>
-        </svg>
-
-        <div className="book-fly fly-5 text-cyan-400/20 font-mono text-sm whitespace-pre">{"def forward(self, x):\n    return self.net(x)"}</div>
-
-        <div className="book-fly fly-6 text-yellow-500/20 font-mono text-xl">[B, T, C]</div>
-
-        <svg className="book-fly fly-7 w-20 h-20 text-purple-400/15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" />
-          <polyline points="13 2 13 9 20 9" />
-          <text x="5" y="16" fontFamily="monospace" fontSize="4" fill="currentColor" stroke="none">.json</text>
-        </svg>
-
-        <div className="book-fly fly-8 text-pink-400/20 font-mono text-sm">loss.backward()</div>
-        <div className="book-fly fly-9 text-cyan-500/15 font-mono text-4xl">∑</div>
-        <div className="book-fly fly-10 text-white/10 font-mono text-sm">vocab_size = 50257</div>
-        <div className="book-fly fly-11 text-blue-300/20 font-serif text-3xl italic">ψ</div>
-        <div className="book-fly fly-12 text-purple-300/20 font-mono text-xs">optimizer.step()</div>
-
         {/* Original static blurs */}
         <div className="dev-bg-blur-1"></div>
         <div className="dev-bg-blur-2"></div>
