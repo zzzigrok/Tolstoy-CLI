@@ -288,6 +288,16 @@ button {
   }
 }
 
+@keyframes rotate-bg-connections {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+
 @keyframes gradient-shift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -2052,13 +2062,14 @@ button {
   left: 50%;
   width: 150vmax;
   height: 150vmax;
-  margin-top: -75vmax;
-  margin-left: -75vmax;
   opacity: 0.2;
   pointer-events: none;
   will-change: transform;
+  transform: translate(-50%, -50%) rotate(0deg);
   transform-origin: center center;
+  animation: rotate-bg-connections 40s linear infinite;
 }
+
 
 .bg-connections-svg circle,
 .bg-connections-svg path {
@@ -2143,6 +2154,30 @@ button {
   transform-origin: 150px 150px;
   animation-duration: 90s;
 }
+
+/* Ambient Background Orbs */
+.ambient-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  overflow: hidden;
+  background: #030305;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.5;
+  animation: float 20s infinite ease-in-out;
+}
+
+.orb-1 { width: 500px; height: 500px; background: rgba(126, 34, 206, 0.3); top: -100px; left: -100px; }
+.orb-2 { width: 600px; height: 600px; background: rgba(6, 182, 212, 0.2); bottom: -200px; right: -100px; animation-delay: -5s; }
+.orb-3 { width: 400px; height: 400px; background: rgba(236, 72, 153, 0.2); top: 40%; left: 30%; animation-delay: -10s; }
 
 /* Flying Books & Keyframes */
 .flying-books-container {

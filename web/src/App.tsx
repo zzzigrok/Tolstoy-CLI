@@ -666,7 +666,7 @@ function Background() {
       </div>
 
       {/* Abstract SVG background connections */}
-      <svg className="bg-connections-svg animate-rotate-slow" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+      <svg className="bg-connections-svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
         <g stroke="rgba(255,255,255,0.05)" strokeWidth="1" fill="none">
           <circle cx="500" cy="500" r="300" strokeDasharray="4 12" />
           <circle cx="500" cy="500" r="450" strokeDasharray="2 20" />
