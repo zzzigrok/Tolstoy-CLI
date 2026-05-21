@@ -852,3 +852,61 @@ function MoEDoc() {
     </article>
   );
 }
+
+// ----------------------------------------------------
+// 7. SPECULATIVE DECODING DOCUMENT
+// ----------------------------------------------------
+function SpeculativeDoc() {
+  return (
+    <article className="docs-article">
+      <div className="docs-article-header">
+        <h1>Speculative Decoding: Multi-Token Prediction</h1>
+        <p className="docs-lead-paragraph">
+          Ускорение инференса за счет параллельной верификации догадок с помощью технологии 
+          <strong>Multi-Token Prediction (MTP)</strong>.
+        </p>
+      </div>
+
+      <hr className="docs-divider" />
+
+      <h2>🐣 Разбор "для чайников"</h2>
+      <p>
+        Представьте, что основная модель — это медленный, но очень умный профессор. У него есть маленький 
+        помощник (спекулятивные головы), который набрасывает варианты продолжения фразы. Профессор одним 
+        взглядом проверяет сразу 3-4 слова. Если помощник угадал — мы получаем текст мгновенно.
+      </p>
+
+      <AlertBox type="tip" title="Результат">
+        Это ускоряет генерацию в <strong>1.8x – 2.4x</strong> без потери качества ответов.
+      </AlertBox>
+
+      <hr className="docs-divider" />
+
+      <h2>📐 Техническая реализация</h2>
+      <p>
+        В TolstoyLLM_v5 за спекуляцию отвечает класс <code>SpeculativeHead</code>. Эти головы обучаются 
+        предсказывать не один, а несколько будущих токенов независимо из одного и того же скрытого вектора.
+      </p>
+
+      <CodeBlock code={`class SpeculativeHead(nn.Module):
+    def __init__(self, n_embd, vocab_size, num_stages=3):
+        super().__init__()
+        self.num_stages = num_stages
+        self.heads = nn.ModuleList([
+            nn.Sequential(
+                RMSNorm(n_embd),
+                nn.Linear(n_embd, n_embd),
+                nn.GELU(),
+                nn.Linear(n_embd, vocab_size)
+            ) for _ in range(num_stages)
+        ])`} language="python" />
+
+      <h3>Критерий принятия (Verification):</h3>
+      <p>
+        Основная модель делает один проход по всей цепочке догадок. Мы принимаем токен, если догадка 
+        совпала с тем, что выбрала бы основная модель. Если на каком-то шаге догадка неверна — цепочка 
+        обрывается, и мы берем правильный токен от основной модели.
+      </p>
+    </article>
+  );
+}
