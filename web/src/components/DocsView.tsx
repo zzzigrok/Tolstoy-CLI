@@ -6,9 +6,12 @@ import {
   TokenizerDoc, 
   RoPEYaRNDoc, 
   MoEDoc, 
+  OptimizersDoc,
   SpeculativeDoc, 
   DatasetTutorialDoc, 
-  TrainingTutorialDoc 
+  TokenizationTutorialDoc,
+  TrainingTutorialDoc,
+  InteractionTutorialDoc
 } from "./DocSections";
 
 // KaTeX dynamic math renderer component
@@ -116,6 +119,7 @@ export function DocsView({ onBack }: { onBack: () => void }) {
       items: [
         { id: "rope_yarn", label: "🌀 RoPE & YaRN", desc: "Ротационные эмбеддинги и экстраполяция" },
         { id: "moe_swiglu", label: "🧩 Sparse MoE", desc: "Смесь экспертов и активация SwiGLU" },
+        { id: "optimizers", label: "🚀 GaLore & Muon", desc: "Низкоранговые и ортогональные оптимизаторы" },
         { id: "speculative", label: "🐣 Speculative Decoding", desc: "Ускорение через Multi-Token Prediction" },
       ]
     },
@@ -123,7 +127,9 @@ export function DocsView({ onBack }: { onBack: () => void }) {
       category: "ТУТОРИАЛЫ",
       items: [
         { id: "dataset_guide", label: "📂 Создание датасета", desc: "Стратегии сбора и очистки данных" },
+        { id: "tokenization_tutorial", label: "✂️ Гид по токенизации", desc: "Мост между словами и числами" },
         { id: "training_guide_doc", label: "🏋️ Мастер-класс обучения", desc: "Тюнинг параметров и мониторинг" },
+        { id: "interaction_tutorial", label: "💬 Секреты общения", desc: "Тюнинг параметров и промптинг" },
       ]
     }
   ];
@@ -180,9 +186,12 @@ export function DocsView({ onBack }: { onBack: () => void }) {
           {activeDoc === "tokenizer" && <TokenizerDoc />}
           {activeDoc === "rope_yarn" && <RoPEYaRNDoc />}
           {activeDoc === "moe_swiglu" && <MoEDoc />}
+          {activeDoc === "optimizers" && <OptimizersDoc />}
           {activeDoc === "speculative" && <SpeculativeDoc />}
           {activeDoc === "dataset_guide" && <DatasetTutorialDoc />}
+          {activeDoc === "tokenization_tutorial" && <TokenizationTutorialDoc />}
           {activeDoc === "training_guide_doc" && <TrainingTutorialDoc />}
+          {activeDoc === "interaction_tutorial" && <InteractionTutorialDoc />}
         </main>
       </div>
     </div>
