@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Architecture, Corpus } from "./components/Sections";
 import { BookIcon, GitHubIcon } from "./components/Icons";
 import { HeroGraphic } from "./components/HeroGraphic";
+import { DocsView } from "./components/DocsView";
 import { navItems, statItems, philosophyPoints } from "./data/content";
 import "./styles.css";
 
@@ -10,6 +11,45 @@ const githubUrl = "https://github.com/zzzigrok/Tolstoy-CLI";
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
+
+  const [currentPage, setCurrentPage] = useState<'landing' | 'docs'>(() => {
+    if (window.location.hash === "#docs") {
+      return "docs";
+    }
+    return "landing";
+  });
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === "#docs") {
+        setCurrentPage("docs");
+        window.scrollTo(0, 0);
+      } else if (window.location.hash === "" || window.location.hash === "#top") {
+        setCurrentPage("landing");
+        window.scrollTo(0, 0);
+      } else if (
+        window.location.hash.startsWith("#about") ||
+        window.location.hash.startsWith("#developer") ||
+        window.location.hash.startsWith("#philosophy") ||
+        window.location.hash.startsWith("#architecture") ||
+        window.location.hash.startsWith("#corpus")
+      ) {
+        setCurrentPage("landing");
+      }
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  if (currentPage === "docs") {
+    return (
+      <>
+        <Header menuOpen={menuOpen} onToggle={() => setMenuOpen((value) => !value)} onNavigate={closeMenu} />
+        <DocsView onBack={() => { window.location.hash = "#top"; }} />
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>

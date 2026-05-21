@@ -3,7 +3,8 @@ export const navItems = [
   { href: "#developer", label: "Разработчик" },
   { href: "#philosophy", label: "Философия" },
   { href: "#architecture", label: "Архитектура" },
-  { href: "#corpus", label: "Корпус" }
+  { href: "#corpus", label: "Корпус" },
+  { href: "#docs", label: "Документация" }
 ];
 
 export const architectureCards = [
