@@ -7,18 +7,12 @@ import torch.nn.functional as F
 import os, pickle, time, csv, logging, traceback, math
 from datetime import datetime, timedelta
 
-class RestrictedUnpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden for security reasons")
-
-def safe_pickle_load(file):
-    return RestrictedUnpickler(file).load()
-
 from torch.utils.data import Dataset, DataLoader, Subset
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.device import get_optimal_device, get_amp_context, clear_memory
+from utils.pickle_utils import RestrictedUnpickler, safe_pickle_load
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')

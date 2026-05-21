@@ -9,15 +9,13 @@ BPETokenizer v10 (Production-Grade) — Оптимизированная реа�
 """
 import heapq
 import pickle
+import os
+import sys
 
-class RestrictedUnpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden for security reasons")
+# Добавляем корень проекта в путь, чтобы импортировать utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.pickle_utils import RestrictedUnpickler, safe_pickle_load
 
-def safe_pickle_load(file):
-    return RestrictedUnpickler(file).load()
-
-import pickle
 import re
 import unittest
 from collections import Counter, defaultdict
