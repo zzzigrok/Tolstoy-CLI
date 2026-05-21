@@ -958,3 +958,84 @@ function DatasetTutorialDoc() {
     </article>
   );
 }
+
+// ----------------------------------------------------
+// 9. TRAINING TUTORIAL DOCUMENT
+// ----------------------------------------------------
+function TrainingTutorialDoc() {
+  return (
+    <article className="docs-article">
+      <div className="docs-article-header">
+        <h1>Туториал 2: Мастер-класс по обучению</h1>
+        <p className="docs-lead-paragraph">
+          Обучение модели — это танец между скоростью вычислений и доступной памятью. 
+          Этот гайд поможет вам настроить идеальный тренировочный цикл.
+        </p>
+      </div>
+
+      <hr className="docs-divider" />
+
+      <h2>📊 Выбор пресета</h2>
+      <p>В Tolstoy AI Studio пресеты определяют масштаб вашей нейросети:</p>
+      
+      <div className="docs-table-wrapper">
+        <table className="docs-table">
+          <thead>
+            <tr>
+              <th>Пресет</th>
+              <th>Слои</th>
+              <th>Контекст</th>
+              <th>Память (VRAM)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Nano</strong></td>
+              <td>1-2</td>
+              <td>128-256</td>
+              <td>{"<"}1 ГБ (Любой GPU)</td>
+            </tr>
+            <tr>
+              <td><strong>Small/Chat</strong></td>
+              <td>4-8</td>
+              <td>512-2048</td>
+              <td>2-4 ГБ (GTX 1650)</td>
+            </tr>
+            <tr>
+              <td><strong>Medium/Large</strong></td>
+              <td>12-16</td>
+              <td>1024-2048</td>
+              <td>8-12 ГБ (RTX 3060)</td>
+            </tr>
+            <tr>
+              <td><strong>XLarge</strong></td>
+              <td>24+</td>
+              <td>2048+</td>
+              <td>24 ГБ (RTX 4090)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr className="docs-divider" />
+
+      <h2>📈 Анализ кривых потерь (Loss)</h2>
+      <p>Следите за цифрами в консоли каждые 10 итераций:</p>
+      <ul>
+        <li><strong>Train Loss:</strong> Показывает, как модель учит ваш текст. Должен плавно падать.</li>
+        <li><strong>Val Loss:</strong> Главная метрика. Показывает, как модель понимает текст, который она не видела.</li>
+      </ul>
+
+      <AlertBox type="warning" title="Overfitting!">
+        Если Train Loss падает, а Val Loss начал расти — модель начала "зубрить" текст наизусть. 
+        Немедленно остановите обучение!
+      </AlertBox>
+
+      <h3>Рекомендации по железу:</h3>
+      <p>
+        Для комфортного обучения используйте видеокарты NVIDIA с поддержкой CUDA. 
+        При нехватке памяти обязательно включайте <strong>GaLore</strong> в настройках обучения.
+      </p>
+    </article>
+  );
+}
