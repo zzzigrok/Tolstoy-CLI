@@ -32,58 +32,123 @@ export function DocTabs({ tabs, accent = "cyan" }: {
 // 1. ARCHITECTURE DOCUMENT
 // ----------------------------------------------------
 export function ArchitectureDoc() {
+  const tabs = [
+    {
+      id: "overview",
+      label: "ОБЗОР",
+      content: (
+        <>
+          <h2>🏗️ Общая топология модели</h2>
+          <p>
+            <strong>TolstoyLLM_v5</strong> — это современная языковая модель на базе архитектуры <strong>Transformer (decoder-only)</strong>. 
+            Основная цель версии v5 — достижение максимального качества на русском языке при минимальном потреблении 
+            видеопамяти (VRAM).
+          </p>
+          <p>
+            В отличие от классического трансформера, мы используем <strong>Pre-Norm</strong> структуру (нормализация перед 
+            слоем внимания и FFN) и <strong>Parallel Residuals</strong> (параллельные остаточные связи) для максимальной 
+            стабильности глубоких градиентных потоков.
+          </p>
+
+          <div className="docs-diagram-container">
+            <div className="diagram-title">Архитектура слоя Transformer v5</div>
+            <div className="transformer-layer-flow">
+              <div className="flow-node input-node">Входные токены [B, T]</div>
+              <div className="flow-connector font-mono">↓</div>
+              <div className="flow-node layer-box">
+                <div className="sub-node">RMSNorm (QK-Norm включен)</div>
+                <div className="flow-connector-short">↓</div>
+                <div className="sub-node highlight-cyan">GQA + RoPE Attention</div>
+                <div className="flow-connector-short">↓</div>
+                <div className="sub-node">Сложение Residual Connection</div>
+              </div>
+              <div className="flow-connector font-mono">↓</div>
+              <div className="flow-node layer-box">
+                <div className="sub-node">RMSNorm</div>
+                <div className="flow-connector-short">↓</div>
+                <div className="sub-node highlight-purple">Sparse MoE / SwiGLU FFN</div>
+                <div className="flow-connector-short">↓</div>
+                <div className="sub-node">Сложение Residual Connection</div>
+              </div>
+              <div className="flow-connector font-mono">↓</div>
+              <div className="flow-node output-node">Выходной логит [B, T, V]</div>
+            </div>
+          </div>
+        </>
+      )
+    },
+    {
+      id: "code",
+      label: "КОД",
+      content: (
+        <>
+          <h3>1. RMSNorm (Root Mean Square Layer Normalization)</h3>
+          <p>Мы используем Float32 для промежуточных вычислений нормализации, что предотвращает ошибки NaN при переполнениях.</p>
+          <CodeBlock code={`class RMSNorm(nn.Module):
+    def __init__(self, dim, eps=1e-6):
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(dim))
+
+    def forward(self, x):
+        x_f32 = x.float()
+        norm = x_f32.pow(2).mean(-1, keepdim=True)
+        output_f32 = (x_f32 * torch.rsqrt(norm + self.eps)) * self.weight.float()
+        return output_f32.type_as(x)`} language="python" />
+          
+          <h3>2. GQA (Grouped Query Attention)</h3>
+          <p>Для экономии памяти KV-кэша мы группируем запросы. На 4 Query-головки приходится 1 голова Key/Value.</p>
+          <CodeBlock code={`# В MultiheadSelfAttention.forward
+keys = repeat_interleave(keys, n_rep)
+values = repeat_interleave(values, n_rep)
+# Используем оптимизированный SDPA
+output = F.scaled_dot_product_attention(queries, keys, values, mask)`} language="python" />
+        </>
+      )
+    },
+    {
+      id: "math",
+      label: "МАТЕМАТИКА",
+      content: (
+        <>
+          <h3>Формула RMSNorm</h3>
+          <Math formula="a_i = \frac{x_i}{\text{RMS}(x)} g_i, \quad \text{RMS}(x) = \sqrt{\frac{1}{d} \sum_{j=1}^d x_j^2 + \epsilon}" block={true} />
+          
+          <h3>Grouped Query Attention (GQA)</h3>
+          <p>Коэффициент повторения KV-голов:</p>
+          <Math formula="N_{\text{rep}} = N_{\text{head}} / N_{\text{kv\_head}}" block={true} />
+          
+          <h3>Связанные веса (Weight Tying)</h3>
+          <p>Мы связываем веса входного эмбеддинга и выходного проекционного слоя:</p>
+          <Math formula="W_{\text{out}} = W_{\text{emb}}^T" block={true} />
+        </>
+      )
+    },
+    {
+      id: "faq",
+      label: "FAQ",
+      content: (
+        <>
+          <h3>Почему SwiGLU лучше ReLU?</h3>
+          <p>SwiGLU не имеет "мертвых зон" и плавно активируется, что позволяет градиентам течь свободнее, улучшая обучение глубоких сетей.</p>
+          
+          <h3>Что такое QK-Norm?</h3>
+          <p>Это применение RMSNorm к Query и Key до вычисления внимания. Это предотвращает взрыв логитов и делает обучение более стабильным.</p>
+          
+          <h3>Можно ли отключить MoE?</h3>
+          <p>Да, установите <code>num_experts=1</code> в конфигурации. Модель превратится в классическую "плотную" сеть.</p>
+        </>
+      )
+    }
+  ];
+
   return (
     <article className="docs-article">
       <div className="docs-article-header">
         <h1>Tolstoy AI Studio: Архитектура и Модели</h1>
-        <p className="docs-lead-paragraph">
-          Этот документ представляет собой подробный технический разбор архитектуры <strong>TolstoyLLM_v5</strong>. 
-          Мы объединили строгую математику и архитектурные схемы, чтобы показать, как достигается высокая 
-          эффективность обучения и инференса на локальных GPU.
-        </p>
+        <p className="docs-lead-paragraph">Подробный технический разбор архитектуры TolstoyLLM_v5.</p>
       </div>
-
-      <hr className="docs-divider" />
-
-      <h2>🏗️ Общая топология модели</h2>
-      <p>
-        Модель построена на базе архитектуры <strong>Transformer (decoder-only)</strong> с современными оптимизациями. 
-        Основная цель версии v5 — достижение максимального качества на русском языке при минимальном потреблению 
-        видеопамяти (VRAM).
-      </p>
-
-      <h3>Схема «Блока Толстого» (Transformer Layer)</h3>
-      <p>
-        В отличие от классического трансформера, мы используем <strong>Pre-Norm</strong> структуру (нормализация перед 
-        слоем внимания и FFN) и <strong>Parallel Residuals</strong> (параллельные остаточные связи) для максимальной 
-        стабильности глубоких градиентных потоков.
-      </p>
-
-      {/* Embedded Visual Interactive Diagram of Transformer layer */}
-      <div className="docs-diagram-container">
-        <div className="diagram-title">Архитектура слоя TolstoyLLM (Transformer Layer v5)</div>
-        <div className="transformer-layer-flow">
-          <div className="flow-node input-node">Входные токены [B, T]</div>
-          <div className="flow-connector font-mono">↓</div>
-          <div className="flow-node layer-box">
-            <div className="sub-node">RMSNorm (QK-Norm включен)</div>
-            <div className="flow-connector-short">↓</div>
-            <div className="sub-node highlight-cyan">GQA + RoPE (Групповое внимание)</div>
-            <div className="flow-connector-short">↓</div>
-            <div className="sub-node">Сложение Residual Connection</div>
-          </div>
-          <div className="flow-connector font-mono">↓</div>
-          <div className="flow-node layer-box">
-            <div className="sub-node">RMSNorm</div>
-            <div className="flow-connector-short">↓</div>
-            <div className="sub-node highlight-purple">Sparse MoE / SwiGLU FFN (8 экспертов)</div>
-            <div className="flow-connector-short">↓</div>
-            <div className="sub-node">Сложение Residual Connection</div>
-          </div>
-          <div className="flow-connector font-mono">↓</div>
-          <div className="flow-node output-node">Выходной логит [B, T, V] (Shared Weights / Tying)</div>
-        </div>
-      </div>
+      <DocTabs tabs={tabs} accent="cyan" />
     </article>
   );
 }
@@ -92,53 +157,105 @@ export function ArchitectureDoc() {
 // 2. CLI GUIDE DOCUMENT
 // ----------------------------------------------------
 export function CliGuideDoc() {
+  const tabs = [
+    {
+      id: "overview",
+      label: "ОБЗОР",
+      content: (
+        <>
+          <h2>🗺️ Рабочий процесс CLI</h2>
+          <p>Скрипт <code>tolstoy_cli.py</code> — это центр управления вашей персональной нейросетью.</p>
+          
+          <div className="docs-diagram-container">
+            <div className="diagram-title">Консольный пайплайн Tolstoy-CLI</div>
+            <div className="cli-pipeline-grid">
+              <div className="pipeline-step purple-border">
+                <span className="step-num">1</span>
+                <h4>Датасет</h4>
+                <p>Выбор источника, BPE-токенизация и сохранение кэша.</p>
+              </div>
+              <div className="pipeline-step-arrow font-mono">→</div>
+              <div className="pipeline-step cyan-border">
+                <span className="step-num">2</span>
+                <h4>Обучение</h4>
+                <p>Выбор пресета, запуск оптимизаторов и сохранение весов.</p>
+              </div>
+              <div className="pipeline-step-arrow font-mono">→</div>
+              <div className="pipeline-step pink-border">
+                <span className="step-num">3</span>
+                <h4>Чат</h4>
+                <p>Интерактивное общение с обученной моделью.</p>
+              </div>
+            </div>
+          </div>
+
+          <h3>Системный монитор (Меню [4])</h3>
+          <p>Встроенный монитор отображает статус CUDA, поддержку FlashAttention, а также использование RAM и VRAM в реальном времени.</p>
+        </>
+      )
+    },
+    {
+      id: "commands",
+      label: "КОМАНДЫ",
+      content: (
+        <>
+          <h3>Основные команды</h3>
+          <p>1. Подготовка датасета:</p>
+          <CodeBlock code="python tolstoy_cli.py prepare --input_path ./data/war_and_peace.txt" language="bash" />
+          
+          <p>2. Запуск обучения:</p>
+          <CodeBlock code="python tolstoy_cli.py train --preset small --use_galore --use_muon" language="bash" />
+          
+          <p>3. Интерактивный чат:</p>
+          <CodeBlock code="python tolstoy_cli.py chat --checkpoint ./checkpoints/model_best.pth --temperature 0.7" language="bash" />
+        </>
+      )
+    },
+    {
+      id: "presets",
+      label: "ПРЕСЕТЫ",
+      content: (
+        <>
+          <h3>Архитектурные Пресеты</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Пресет</th><th>Слои</th><th>Головы</th><th>Рекомендуемая GPU</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>nano</strong></td><td>4</td><td>8</td><td>CPU / Встроенный GPU</td></tr>
+                <tr><td><strong>small</strong></td><td>8</td><td>8</td><td>GTX 1650 (4 ГБ)</td></tr>
+                <tr><td><strong>chat</strong></td><td>12</td><td>12</td><td>RTX 3050 (6 ГБ)</td></tr>
+                <tr><td><strong>medium</strong></td><td>16</td><td>16</td><td>RTX 4060 (8-12 ГБ)</td></tr>
+                <tr><td><strong>xlarge</strong></td><td>24</td><td>32</td><td>RTX 4090 (24 ГБ)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </>
+      )
+    },
+    {
+      id: "troubleshooting",
+      label: "FAQ",
+      content: (
+        <>
+          <h3>CUDA Out of Memory</h3>
+          <p>Убедитесь, что включили <strong>GaLore</strong> или выберите пресет поменьше. Также попробуйте режим <code>int8kv</code> для KV-кэша.</p>
+          
+          <h3>Ошибка чтения файлов</h3>
+          <p>Убедитесь, что файлы имеют кодировку UTF-8. Для PDF/DOCX требуются установленные библиотеки <code>PyPDF2</code> и <code>python-docx</code>.</p>
+        </>
+      )
+    }
+  ];
+
   return (
     <article className="docs-article">
       <div className="docs-article-header">
         <h1>Tolstoy AI Studio: Руководство пользователя CLI</h1>
-        <p className="docs-lead-paragraph">
-          Скрипт <code>tolstoy_cli.py</code> — это центр управления вашей персональной нейросетью. 
-          Этот мануал поможет вам пройти путь от импорта сырых текстов до общения с обученной моделью.
-        </p>
+        <p className="docs-lead-paragraph">Мануал по управлению вашей персональной нейросетью через консоль.</p>
       </div>
-
-      <hr className="docs-divider" />
-
-      <h2>🏁 Подготовка окружения</h2>
-      <p>Перед запуском консоли установите необходимые зависимости:</p>
-      <CodeBlock code="pip install -r requirements.txt" language="bash" />
-      <p>
-        Для ускорения вычислений на видеокартах NVIDIA рекомендуется использовать <code>bitsandbytes</code>, что позволит 
-        активировать 8-битные оптимизаторы памяти.
-      </p>
-
-      <hr className="docs-divider" />
-
-      <h2>🗺️ Общая архитектура рабочего процесса</h2>
-      <p>Ниже представлена схема полного цикла работы с Tolstoy CLI:</p>
-
-      <div className="docs-diagram-container">
-        <div className="diagram-title">Консольный пайплайн Tolstoy-CLI</div>
-        <div className="cli-pipeline-grid">
-          <div className="pipeline-step purple-border">
-            <span className="step-num">1</span>
-            <h4>Подготовка данных</h4>
-            <p>Выбор источника (TXT, MD, PDF или Corus), BPE-токенизация текста и сохранение кэша.</p>
-          </div>
-          <div className="pipeline-step-arrow font-mono">→</div>
-          <div className="pipeline-step cyan-border">
-            <span className="step-num">2</span>
-            <h4>Обучение модели</h4>
-            <p>Выбор пресета, оптимизаторов (GaLore, Muon), прогон эпох и сохранение весов (.pth).</p>
-          </div>
-          <div className="pipeline-step-arrow font-mono">→</div>
-          <div className="pipeline-step pink-border">
-            <span className="step-num">3</span>
-            <h4>Интерактивный чат</h4>
-            <p>Запуск модели с настраиваемой температурой, штрафом за повторения и выводом в терминал.</p>
-          </div>
-        </div>
-      </div>
+      <DocTabs tabs={tabs} accent="purple" />
     </article>
   );
 }
@@ -147,47 +264,89 @@ export function CliGuideDoc() {
 // 3. TRAINING DOCUMENT
 // ----------------------------------------------------
 export function TrainingDoc() {
+  const tabs = [
+    {
+      id: "overview",
+      label: "ОБЗОР",
+      content: (
+        <>
+          <h2>🚀 Жизненный цикл обучения</h2>
+          <p>Обучение модели — это процесс настройки миллиардов весов для предсказания следующего токена.</p>
+          
+          <div className="docs-diagram-container">
+            <div className="diagram-title">Пайплайн обучения</div>
+            <div className="transformer-layer-flow">
+              <div className="flow-node input-node">Батч токенов [B, T]</div>
+              <div className="flow-connector font-mono">↓</div>
+              <div className="flow-node layer-box">Forward Pass (Loss Calculation)</div>
+              <div className="flow-connector font-mono">↓</div>
+              <div className="flow-node layer-box">Backward Pass (AMP Gradient Scaling)</div>
+              <div className="flow-connector font-mono">↓</div>
+              <div className="flow-node highlight-purple">Оптимизаторы: GaLore / Muon / AdamW</div>
+              <div className="flow-connector font-mono">↓</div>
+              <div className="flow-node output-node">Обновление весов + Step Scheduler</div>
+            </div>
+          </div>
+        </>
+      )
+    },
+    {
+      id: "tech",
+      label: "ТЕХНОЛОГИИ",
+      content: (
+        <>
+          <h3>1. Умная загрузка данных</h3>
+          <p>Использование <code>pin_memory</code> и <code>num_workers</code> позволяет готовить данные на CPU, пока GPU занят расчетами. Прирост скорости: 15-20%.</p>
+          
+          <h3>2. Смешанная точность (BFloat16)</h3>
+          <p>BFloat16 сохраняет динамический диапазон Float32, но занимает в 2 раза меньше памяти, ускоряя обучение на тензорных ядрах NVIDIA.</p>
+          
+          <h3>3. Асинхронная валидация</h3>
+          <p>Запуск проверки качества в отдельном CUDA Stream позволяет не останавливать процесс обучения, снижая простой GPU на 10%.</p>
+        </>
+      )
+    },
+    {
+      id: "scheduler",
+      label: "ONE CYCLE",
+      content: (
+        <>
+          <h3>Управление скоростью обучения</h3>
+          <p>Мы используем стратегию <strong>OneCycleLR</strong>:</p>
+          <ol>
+            <li><strong>Warmup:</strong> Плавный рост LR во избежание резких расхождений.</li>
+            <li><strong>Peak:</strong> Максимальная стабильная скорость обучения.</li>
+            <li><strong>Decay:</strong> Затухание до минимума для фиксации знаний.</li>
+          </ol>
+          <AlertBox type="tip" title="Early Stopping">Тренер автоматически остановит обучение, если лосс на валидации начнет расти.</AlertBox>
+        </>
+      )
+    },
+    {
+      id: "faq",
+      label: "FAQ",
+      content: (
+        <>
+          <h3>Что такое Gradient Accumulation?</h3>
+          <p>Это способ имитации большого батча на маленькой видеокарте путем сложения градиентов за несколько шагов перед обновлением весов.</p>
+          
+          <h3>Почему Val Loss выше Train Loss?</h3>
+          <p>Это нормально. На обучении модель видит данные много раз. Если разрыв критический — увеличьте <strong>Weight Decay</strong> или <strong>Dropout</strong>.</p>
+          
+          <h3>Влияет ли torch.compile на качество?</h3>
+          <p>Нет, только на скорость. Это JIT-компиляция, ускоряющая процесс на 15-30%.</p>
+        </>
+      )
+    }
+  ];
+
   return (
     <article className="docs-article">
       <div className="docs-article-header">
         <h1>Tolstoy AI Studio: Обучение и Оптимизация</h1>
-        <p className="docs-lead-paragraph">
-          Обучение модели — это процесс настройки миллиардов весов для предсказания следующего токена. 
-          В этом документе мы разберем оптимизации тренировочного цикла класса <code>Trainer</code>.
-        </p>
+        <p className="docs-lead-paragraph">Глубокое погружение в процессы тренировки нейросети.</p>
       </div>
-
-      <hr className="docs-divider" />
-
-      <h2>🔬 Глубокий разбор технологий оптимизации памяти</h2>
-
-      <h3>1. GaLore (Gradient Low-Rank Projection)</h3>
-      <p>
-        GaLore минимизирует требования к памяти, проецируя градиент весов <Math formula="G" /> в низкоранговое пространство.
-      </p>
-
-      <div className="galore-flow-container">
-        <div className="diagram-title">Этапы сжатия GaLore</div>
-        <div className="galore-grid">
-          <div className="galore-step">
-            <h4>1. Проекция градиента</h4>
-            <p><Math formula="G_{\text{proj}} = U^T G V" block={false} /></p>
-            <p>Сжатие градиента в низкоранговую форму</p>
-          </div>
-          <div className="galore-arrow">→</div>
-          <div className="galore-step">
-            <h4>2. Оптимизация AdamW</h4>
-            <p><Math formula="P_{t+1} = \text{Adam}(G_{\text{proj}})" block={false} /></p>
-            <p>Накопление моментов в сжатом пространстве (VRAM -80%)</p>
-          </div>
-          <div className="galore-arrow">→</div>
-          <div className="galore-step">
-            <h4>3. Реконструкция</h4>
-            <p><Math formula="\Delta W = U P_{t+1} V^T" block={false} /></p>
-            <p>Обратное проецирование для обновления весов W</p>
-          </div>
-        </div>
-      </div>
+      <DocTabs tabs={tabs} accent="cyan" />
     </article>
   );
 }
@@ -196,25 +355,90 @@ export function TrainingDoc() {
 // 4. TOKENIZER DOCUMENT
 // ----------------------------------------------------
 export function TokenizerDoc() {
+  const tabs = [
+    {
+      id: "overview",
+      label: "ОБЗОР",
+      content: (
+        <>
+          <h2>🧠 Алгоритмические инновации BPE v10</h2>
+          <p>Токенизатор — это «глаза» языковой модели. Мы реализовали версию BPE со сложностью <strong><Math formula="O(N \log M)" /></strong>.</p>
+          
+          <ul>
+            <li><strong>Linked Array:</strong> Двусвязные списки на плоских массивах превращают слияние в <Math formula="O(1)" />.</li>
+            <li><strong>Reverse Indexing:</strong> Хэш-таблица координат пар для мгновенного поиска вхождений.</li>
+            <li><strong>Delta-Update:</strong> Локальный пересчет частот при слиянии без сканирования всего корпуса.</li>
+            <li><strong>Lazy Priority Heap:</strong> Очередь с приоритетами для выбора лучшей пары за <Math formula="O(\log M)" />.</li>
+          </ul>
+        </>
+      )
+    },
+    {
+      id: "code",
+      label: "КОД",
+      content: (
+        <>
+          <h3>Пре-токенизация (Regex)</h3>
+          <p>Мы используем регулярное выражение для сохранения слов с дефисами как единых блоков:</p>
+          <CodeBlock code={`RU_PATTERN = re.compile(
+    r""" ?[а-яА-ЯёЁa-zA-Z]+-[а-яА-ЯёЁa-zA-Z]+| ?\\w+| ?[^\\s\\w]+|\\s+(?!\\S)|\\s+"""
+)`} language="python" />
+          
+          <h3>Иерархическое слияние по рангу</h3>
+          <p>Во время инференса используется <strong>Rank-based Merge</strong> со сложностью <Math formula="O(L \log L)" />.</p>
+        </>
+      )
+    },
+    {
+      id: "math",
+      label: "МАТЕМАТИКА",
+      content: (
+        <>
+          <h3>Метрики качества</h3>
+          <p><strong>Фертильность (Fertility):</strong> Среднее число токенов на слово. Идеал для русского языка: 1.1 – 1.6.</p>
+          <Math formula="F = \frac{\sum T_i}{W}" block={true} />
+          
+          <h3>Потребление RAM (est.)</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Корпус</th><th>Уникальные слова</th><th>RAM (32k)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>100 МБ</strong></td><td>4.2 МБ</td><td>~1.1 ГБ</td></tr>
+                <tr><td><strong>1 ГБ</strong></td><td>22 МБ</td><td>~5.2 ГБ</td></tr>
+                <tr><td><strong>5 ГБ</strong></td><td>65 МБ</td><td>~14.5 ГБ</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </>
+      )
+    },
+    {
+      id: "faq",
+      label: "FAQ",
+      content: (
+        <>
+          <h3>Почему не SentencePiece?</h3>
+          <p>Наша реализация на чистом Python с оптимизациями показывает сопоставимую скорость, оставаясь прозрачной и легкой для модификации морфологических правил.</p>
+          
+          <h3>Зачем нужен dataset_tokens.pkl?</h3>
+          <p>Это "переваренный" текст. Модель начинает обучение мгновенно, не тратя время на токенизацию при каждом запуске.</p>
+          
+          <h3>Есть ли токен [UNK]?</h3>
+          <p>Нет. Мы используем Byte-level BPE, гарантирующий кодирование любого символа UTF-8 через базовые байты.</p>
+        </>
+      )
+    }
+  ];
+
   return (
     <article className="docs-article">
       <div className="docs-article-header">
         <h1>Глубокий разбор: BPETokenizer v10</h1>
-        <p className="docs-lead-paragraph">
-          Токенизатор — это «глаза» языковой модели. В Tolstoy-CLI реализована одна из самых быстрых и 
-          эффективных версий алгоритма <strong>BPE (Byte Pair Encoding)</strong> для русского языка.
-        </p>
+        <p className="docs-lead-paragraph">Реализация промышленного стандарта BPE для русского языка.</p>
       </div>
-
-      <hr className="docs-divider" />
-
-      <h2>🧠 Алгоритмические инновации BPE v10</h2>
-
-      <h3>1. Linked Array (Двусвязные списки на массивах)</h3>
-      <p>
-        Вместо стандартных списков Python, в версии v10 используются плоские массивы указателей: <code>prev_idx</code> и <code>next_idx</code>. 
-        Слияние двух соседних токенов сводится к перебросу указателей соседей за <strong><Math formula="O(1)" /></strong>.
-      </p>
+      <DocTabs tabs={tabs} accent="purple" />
     </article>
   );
 }
