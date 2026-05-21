@@ -22,10 +22,10 @@ export default function App() {
               <span className="badge-dot"></span>
               Образовательный Фреймворк
             </div>
-            <h1 className="animated-gradient-text pb-2">
-              Открывая <br />
+            <h1 className="hero-title pb-2">
+              <span className="animated-gradient-text">Открывая</span> <br />
               <span className="hero-italic">черный ящик</span> <br />
-              нейросетей
+              <span className="animated-gradient-text">нейросетей</span>
             </h1>
             <p className="hero-text">
               Tolstoy-CLI — это архитектурная лаборатория. Создавайте, обучайте и понимайте механизмы работы Больших Языковых Моделей (LLM) с нуля. Синтез глубокого машинного обучения и богатства классической литературы.
