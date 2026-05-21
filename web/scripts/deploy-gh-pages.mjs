@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync, copyFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -27,16 +27,23 @@ function tryRun(command, args, cwd = repoRoot) {
   }
 }
 
-function copyDirectory(from, to) {
+function copyReferencedDist(from, to) {
   mkdirSync(to, { recursive: true });
-  for (const entry of readdirSync(from)) {
-    const source = join(from, entry);
-    const target = join(to, entry);
-    if (statSync(source).isDirectory()) {
-      copyDirectory(source, target);
-    } else {
-      copyFileSync(source, target);
-    }
+  copyFileSync(join(from, "index.html"), join(to, "index.html"));
+
+  const html = readFileSync(join(from, "index.html"), "utf8");
+  const assetNames = new Set();
+  const assetPattern = /(?:href|src)="\.?\/?assets\/([^"]+)"/g;
+  let match;
+  while ((match = assetPattern.exec(html)) !== null) {
+    assetNames.add(match[1]);
+  }
+
+  const sourceAssets = join(from, "assets");
+  const targetAssets = join(to, "assets");
+  mkdirSync(targetAssets, { recursive: true });
+  for (const assetName of assetNames) {
+    copyFileSync(join(sourceAssets, assetName), join(targetAssets, assetName));
   }
 }
 
@@ -60,7 +67,7 @@ for (const entry of readdirSync(deployDir)) {
   }
 }
 
-copyDirectory(distDir, deployDir);
+copyReferencedDist(distDir, deployDir);
 copyFileSync(join(webRoot, "public", ".nojekyll"), join(deployDir, ".nojekyll"));
 
 run("git", ["add", "-A"], deployDir);
