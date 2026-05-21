@@ -3401,6 +3401,95 @@ button {
   font-family: monospace;
 }
 
+/* --- Documentation Tabs --- */
+
+.doc-tabs-container {
+  margin-top: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: rgba(10, 10, 15, 0.4);
+  backdrop-filter: blur(16px);
+}
+
+.doc-tabs-header {
+  display: flex;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.5rem;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.doc-tab-btn {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid transparent;
+  background: none;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.doc-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.doc-tab-btn.active {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Accent Colors for Tabs */
+.doc-tabs-container.accent-cyan .doc-tab-btn.active {
+  color: #22d3ee;
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.1);
+}
+
+.doc-tabs-container.accent-purple .doc-tab-btn.active {
+  color: #c084fc;
+  border-color: rgba(192, 132, 252, 0.3);
+  box-shadow: 0 0 15px rgba(192, 132, 252, 0.1);
+}
+
+.doc-tabs-container.accent-pink .doc-tab-btn.active {
+  color: #f472b6;
+  border-color: rgba(244, 114, 182, 0.3);
+  box-shadow: 0 0 15px rgba(244, 114, 182, 0.1);
+}
+
+.doc-tab-content {
+  padding: 2rem;
+  min-height: 300px;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile adjustments for tabs */
+@media (max-width: 640px) {
+  .doc-tabs-header {
+    padding: 0.25rem;
+  }
+  .doc-tab-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+  .doc-tab-content {
+    padding: 1.5rem;
+  }
+}
+
 
 
 
