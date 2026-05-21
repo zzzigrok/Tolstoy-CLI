@@ -1,37 +1,38 @@
 import { useState } from "react";
-import { Architecture } from "./components/Sections";
-import { ArrowIcon, BookIcon, GitHubIcon } from "./components/Icons";
+import { Architecture, Corpus } from "./components/Sections";
+import { BookIcon, GitHubIcon } from "./components/Icons";
 import { HeroGraphic } from "./components/HeroGraphic";
-import { navItems } from "./data/content";
+import { navItems, statItems, philosophyPoints } from "./data/content";
 import "./styles.css";
 
 const githubUrl = "https://github.com/zzzigrok/Tolstoy-CLI";
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
-
   const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
+      <Background />
       <Header menuOpen={menuOpen} onToggle={() => setMenuOpen((value) => !value)} onNavigate={closeMenu} />
       <main>
         <section className="hero section-shell" id="top">
           <div className="hero-copy">
-            <p className="hero-label">Образовательная лаборатория LLM</p>
-            <h1>
-              Открывая
-              <span>черный ящик</span>
+            <div className="hero-badge">
+              <span className="badge-dot"></span>
+              Образовательный Фреймворк
+            </div>
+            <h1 className="animated-gradient-text pb-2">
+              Открывая <br />
+              <span className="hero-italic">черный ящик</span> <br />
               нейросетей
             </h1>
             <p className="hero-text">
-              Tolstoy-CLI помогает создавать, обучать и понимать русскоязычные языковые модели с нуля:
-              от токенизации и корпуса до attention, оптимизаторов и инференса.
+              Tolstoy-CLI — это архитектурная лаборатория. Создавайте, обучайте и понимайте механизмы работы Больших Языковых Моделей (LLM) с нуля. Синтез глубокого машинного обучения и богатства классической литературы.
             </p>
             <div className="hero-actions">
               <a className="button button-primary" href="#about">
                 Погрузиться
-                <ArrowIcon className="button-icon" />
               </a>
               <a className="button button-secondary" href="#architecture">
                 Документация
@@ -45,6 +46,7 @@ export default function App() {
         <Developer />
         <Philosophy />
         <Architecture />
+        <Corpus />
       </main>
       <Footer />
     </>
@@ -59,70 +61,69 @@ type HeaderProps = {
 
 function Header({ menuOpen, onToggle, onNavigate }: HeaderProps) {
   return (
-    <header className="site-header">
-      <a className="brand" href="#top" onClick={onNavigate} aria-label="Tolstoy-CLI, наверх">
-        <BookIcon className="brand-icon" />
-        <span>
-          Tolstoy<span>-CLI</span>
-        </span>
-      </a>
+    <header className="site-header fixed-nav">
+      <div className="nav-container">
+        <a className="brand" href="#top" onClick={onNavigate} aria-label="Tolstoy-CLI, наверх">
+          <svg className="brand-logo-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>Tolstoy<span className="brand-suffix">-CLI</span></span>
+        </a>
 
-      <nav className="desktop-nav" aria-label="Основная навигация">
-        {navItems.map((item) => (
-          <a key={item.href} href={item.href}>
-            {item.label}
-          </a>
-        ))}
-      </nav>
+        <nav className="desktop-nav" aria-label="Основная навигация">
+          {navItems.map((item) => (
+            <a key={item.href} href={item.href} className="nav-link">
+              {item.label}
+            </a>
+          ))}
+        </nav>
 
-      <a className="github-link desktop-github" href={githubUrl} target="_blank" rel="noopener noreferrer">
-        <GitHubIcon className="github-icon" />
-        GitHub
-      </a>
-
-      <button className="menu-button" type="button" aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={onToggle}>
-        <span />
-        <span />
-        <span />
-      </button>
-
-      <nav id="mobile-nav" className={menuOpen ? "mobile-nav open" : "mobile-nav"} aria-label="Мобильная навигация">
-        {navItems.map((item) => (
-          <a key={item.href} href={item.href} onClick={onNavigate}>
-            {item.label}
-          </a>
-        ))}
-        <a href={githubUrl} target="_blank" rel="noopener noreferrer" onClick={onNavigate}>
+        <a className="github-link desktop-github" href={githubUrl} target="_blank" rel="noopener noreferrer">
+          <GitHubIcon className="github-icon" />
           GitHub
         </a>
-      </nav>
+
+        <button className="menu-button" type="button" aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={onToggle}>
+          <span />
+          <span />
+          <span />
+        </button>
+
+        <nav id="mobile-nav" className={menuOpen ? "mobile-nav open" : "mobile-nav"} aria-label="Мобильная навигация">
+          {navItems.map((item) => (
+            <a key={item.href} href={item.href} onClick={onNavigate}>
+              {item.label}
+            </a>
+          ))}
+          <a href={githubUrl} target="_blank" rel="noopener noreferrer" onClick={onNavigate}>
+            GitHub
+          </a>
+        </nav>
+      </div>
     </header>
   );
 }
 
 function About() {
   return (
-    <section className="section-shell about-section" id="about">
-      <div className="section-heading">
-        <p className="section-kicker">О проекте</p>
-        <h2>Архитектурная лаборатория для русского NLP</h2>
-      </div>
-      <div className="about-grid">
-        <article className="text-panel">
-          <p>
-            Tolstoy-CLI — это практический набор инструментов для обучения LLM на локальном железе. Проект
-            соединяет образовательный формат, PyTorch-реализацию и корпус русской классической литературы.
-          </p>
-          <p>
-            Лендинг теперь собран как React-приложение: секции разнесены на компоненты, данные вынесены из
-            разметки, а визуальная система больше не зависит от Tailwind CDN.
-          </p>
-        </article>
-        <div className="stat-grid" aria-label="Ключевые особенности">
-          <Stat value="1B+" label="масштаб моделей на одной мощной GPU" />
-          <Stat value="v7" label="GaLore, Muon, MoE, XQuant и GQA" />
-          <Stat value="100+" label="текстов в литературном корпусе" />
-          <Stat value="MIT" label="открытая лицензия и GitHub workflow" />
+    <section className="section-shell about-section-new" id="about">
+      <div className="glass-card about-card">
+        <svg className="about-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        </svg>
+        <h2>Образовательная лаборатория LLM</h2>
+        <p className="about-description">
+          Tolstoy-CLI не является очередным "черным ящиком" для генерации текста. Это полнофункциональная, 
+          но понятная архитектура, созданная для того, чтобы показать внутреннее устройство современных трансформеров. 
+          От BPE токенизации до механизма внимания и Speculative Decoding — каждая строчка кода написана для изучения и модификации.
+        </p>
+        <div className="about-stats-grid">
+          {statItems.map((stat) => (
+            <div key={stat.label} className="about-stat-item">
+              <div className="stat-value">{stat.value}</div>
+              <div className="stat-label">{stat.label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -131,21 +132,248 @@ function About() {
 
 function Developer() {
   return (
-    <section className="section-shell developer-section" id="developer">
-      <div className="developer-card">
-        <div className="avatar" aria-hidden="true">
-          <BookIcon className="avatar-book" />
+    <section className="section-shell developer-section-new" id="developer">
+      {/* Abstract background math/code elements */}
+      <div className="dev-math-background">
+        <div className="book-fly fly-1 text-cyan-500/20 font-mono text-3xl font-bold">{"{ }"}</div>
+        <div className="book-fly fly-2 text-purple-500/20 font-mono text-2xl">&lt;/&gt;</div>
+        <div className="book-fly fly-3 text-pink-500/20 font-mono text-sm tracking-widest">01001101 01001100</div>
+        
+        <svg className="book-fly fly-4 w-16 h-16 text-blue-400/10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" />
+          <polyline points="13 2 13 9 20 9" />
+          <text x="8" y="16" fontFamily="monospace" fontSize="5" fill="currentColor" stroke="none">.py</text>
+        </svg>
+
+        <div className="book-fly fly-5 text-cyan-400/20 font-mono text-sm whitespace-pre">{"def forward(self, x):\n    return self.net(x)"}</div>
+
+        <div className="book-fly fly-6 text-yellow-500/20 font-mono text-xl">[B, T, C]</div>
+
+        <svg className="book-fly fly-7 w-20 h-20 text-purple-400/15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z" />
+          <polyline points="13 2 13 9 20 9" />
+          <text x="5" y="16" fontFamily="monospace" fontSize="4" fill="currentColor" stroke="none">.json</text>
+        </svg>
+
+        <div className="book-fly fly-8 text-pink-400/20 font-mono text-sm">loss.backward()</div>
+        <div className="book-fly fly-9 text-cyan-500/15 font-mono text-4xl">∑</div>
+        <div className="book-fly fly-10 text-white/10 font-mono text-sm">vocab_size = 50257</div>
+        <div className="book-fly fly-11 text-blue-300/20 font-serif text-3xl italic">ψ</div>
+        <div className="book-fly fly-12 text-purple-300/20 font-mono text-xs">optimizer.step()</div>
+
+        {/* Original static blurs */}
+        <div className="dev-bg-blur-1"></div>
+        <div className="dev-bg-blur-2"></div>
+      </div>
+
+      <div className="developer-header-box">
+        <div className="dev-kicker-badge">
+          <svg className="kicker-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+          Создатель
         </div>
-        <div>
-          <p className="section-kicker">Разработчик</p>
-          <h2>Проект собран как инженерный учебник</h2>
-          <p>
-            Фокус не на черной магии генерации, а на ясной сборке: какие блоки входят в модель, где тратится
-            память, как меняется качество и какие оптимизации имеют смысл в домашней лаборатории.
-          </p>
-          <a className="button button-secondary" href="https://github.com/zzzigrok" target="_blank" rel="noopener noreferrer">
-            Профиль GitHub
-          </a>
+        <h2>Об авторе проекта</h2>
+        <div className="dev-divider"></div>
+      </div>
+
+      <div className="dev-terminal-card max-w-5xl mx-auto relative">
+        <div className="dev-outer-border"></div>
+        <div className="terminal-content">
+          <div className="terminal-header">
+            <div className="terminal-controls">
+              <span className="control-btn red"></span>
+              <span className="control-btn yellow"></span>
+              <span className="control-btn green"></span>
+            </div>
+            <div className="text-[11px] font-mono text-gray-500 flex items-center gap-2">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              zzzigrok@tolstoy-lab: ~
+            </div>
+            <div className="w-10"></div>
+          </div>
+          <div className="terminal-body-grid">
+            {/* Left: Avatar SVG with typing hands */}
+            <div className="terminal-avatar-wrapper">
+              <div className="avatar-background-glow"></div>
+              <div className="avatar-svg-container group/avatar">
+                {/* Highly Detailed Cyber Avatar SVG */}
+                <svg className="typing-hands-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Background floating data streams (Visible on hover) */}
+                  <g className="opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-500 text-cyan-500/50" fontFamily="monospace" fontSize="6px" fontWeight="bold">
+                    <text x="8" y="25">01</text>
+                    <text x="8" y="35">10</text>
+                    <text x="82" y="30">11</text>
+                    <text x="82" y="40">00</text>
+                    {/* Rising data nodes */}
+                    <circle cx="12" cy="50" r="1" fill="#06b6d4">
+                      <animate attributeName="cy" values="60;10" dur="2s" repeatCount="indefinite"/>
+                      <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="85" cy="60" r="1" fill="#c084fc">
+                      <animate attributeName="cy" values="70;20" dur="2.5s" repeatCount="indefinite"/>
+                      <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite"/>
+                    </circle>
+                  </g>
+
+                  {/* Companion Drone / Eye */}
+                  <g className="transform group-hover/avatar:translate-x-1 group-hover/avatar:-translate-y-2 transition-transform duration-700">
+                    <circle cx="16" cy="28" r="5" fill="#0f172a" stroke="#475569" strokeWidth={1.5}/>
+                    <circle cx="16" cy="28" r="2" fill="#06b6d4" className="animate-pulse"/>
+                    <path d="M 11 28 A 5 5 0 0 1 21 28" fill="none" stroke="#06b6d4" strokeWidth={1} strokeDasharray="2 2" className="animate-spin-reverse" style={{ transformOrigin: "16px 28px" }}/>
+                    {/* Scanner beam */}
+                    <polygon points="16,33 10,50 22,50" fill="#06b6d4" fillOpacity={0.1} className="opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300"/>
+                  </g>
+
+                  {/* Cabling from head to back */}
+                  <path d="M 69 35 Q 85 40 85 65" fill="none" stroke="#1e293b" strokeWidth={2.5}/>
+                  <path d="M 69 38 Q 80 43 80 65" fill="none" stroke="#06b6d4" strokeWidth={1} strokeDasharray="2 2" className="animate-dash-flow"/>
+                  <path d="M 31 35 Q 15 40 15 65" fill="none" stroke="#1e293b" strokeWidth={2.5}/>
+
+                  {/* Body / Hoodie */}
+                  <path d="M 10 100 L 15 80 C 15 60, 30 55, 50 55 C 70 55, 85 60, 85 80 L 90 100 Z" fill="#0f172a" stroke="#334155" strokeWidth={1.5}/>
+                  <path d="M 32 55 C 32 70, 68 70, 68 55" fill="#020617" stroke="#1e293b" strokeWidth={1}/>
+                  <path d="M 40 65 L 40 82 M 60 65 L 60 80" stroke="#334155" strokeWidth={1.5} strokeDasharray="2 2" strokeLinecap="round"/>
+                  
+                  {/* Cyber circuitry pattern on chest */}
+                  <path d="M 45 75 L 50 82 L 55 75 L 55 70 L 45 70 Z" fill="#7e22ce" stroke="#c084fc" strokeWidth={0.5} className="group-hover/avatar:fill-cyan-400 group-hover/avatar:stroke-cyan-200 transition-colors duration-500"/>
+                  <path d="M 50 82 L 50 95" stroke="#7e22ce" strokeWidth={1} className="group-hover/avatar:stroke-cyan-400 transition-colors duration-500"/>
+                  <line x1="45" y1="75" x2="35" y2="75" stroke="#7e22ce" strokeWidth={1} strokeDasharray="1 1" className="group-hover/avatar:stroke-cyan-400"/>
+                  <line x1="55" y1="75" x2="65" y2="75" stroke="#7e22ce" strokeWidth={1} strokeDasharray="1 1" className="group-hover/avatar:stroke-cyan-400"/>
+                  
+                  {/* Shoulders / Cyber implants */}
+                  <path d="M 15 75 L 25 75 L 25 80 L 15 80 Z" fill="#1e293b" stroke="#475569" strokeWidth={1}/>
+                  <path d="M 85 75 L 75 75 L 75 80 L 85 80 Z" fill="#1e293b" stroke="#475569" strokeWidth={1}/>
+
+                  {/* Neck and Head Base */}
+                  <path d="M 42 55 L 42 43 L 58 43 L 58 55 Z" fill="#475569"/>
+                  <line x1="42" y1="46" x2="58" y2="46" stroke="#1e293b" strokeWidth={1}/>
+                  <line x1="42" y1="50" x2="58" y2="50" stroke="#1e293b" strokeWidth={1}/>
+                  <path d="M 33 25 C 33 8, 67 8, 67 25 L 67 40 C 67 52, 33 52, 33 40 Z" fill="#cbd5e1" className="group-hover/avatar:fill-white transition-colors duration-500"/>
+                  <path d="M 33 35 C 40 46, 60 46, 67 35 L 67 40 C 60 52, 40 52, 33 40 Z" fill="#94a3b8"/>
+                  
+                  {/* Cybernetic Hair / Implants */}
+                  <path d="M 33 25 C 33 8, 67 8, 67 25 C 60 20, 40 20, 33 25 Z" fill="#1e293b"/>
+                  <line x1="42" y1="14" x2="58" y2="14" stroke="#06b6d4" strokeWidth={1.5} className="animate-pulse"/>
+                  <line x1="46" y1="18" x2="54" y2="18" stroke="#c084fc" strokeWidth={1} className="animate-pulse" style={{ animationDelay: "0.5s" }}/>
+
+                  {/* Heavy Cyber Headphones */}
+                  <path d="M 27 35 Q 27 6, 50 6 Q 73 6, 73 35" stroke="#1e293b" strokeWidth={6} strokeLinecap="round" fill="none"/>
+                  <path d="M 31 35 Q 31 10, 50 10 Q 69 10, 69 35" stroke="#0f172a" strokeWidth={2} strokeLinecap="round" fill="none"/>
+                  <rect x="23" y="24" width="8" height="24" rx="4" fill="#0f172a" stroke="#475569" strokeWidth={1.5}/>
+                  <rect x="69" y="24" width="8" height="24" rx="4" fill="#0f172a" stroke="#475569" strokeWidth={1.5}/>
+                  <circle cx="27" cy="36" r="2.5" fill="#06b6d4" className="animate-pulse"/>
+                  <circle cx="73" cy="36" r="2.5" fill="#06b6d4" className="animate-pulse"/>
+                  <rect x="25" y="28" width="4" height="2" fill="#c084fc"/>
+                  <rect x="71" y="28" width="4" height="2" fill="#c084fc"/>
+                  <path d="M 29 45 Q 35 55 42 53" fill="none" stroke="#475569" strokeWidth={2} strokeLinecap="round"/>
+                  <circle cx="43" cy="52" r="1.5" fill="#06b6d4" className="animate-pulse"/>
+
+                  {/* High-Tech VR Visor (Enhanced) */}
+                  <path d="M 30 26 C 40 30, 60 30, 70 26 L 73 38 C 60 44, 40 44, 27 38 Z" fill="#020617" stroke="#c084fc" strokeWidth={1.5} className="group-hover/avatar:stroke-cyan-300 transition-colors duration-500"/>
+                  <path d="M 32 29 C 45 32, 55 32, 68 29 L 71 36 C 55 40, 45 40, 29 36 Z" fill="#c084fc" fillOpacity={0.2} className="group-hover/avatar:fill-opacity-0.4 transition-all duration-500"/>
+                  <line x1="38" y1="34" x2="44" y2="34" stroke="#06b6d4" strokeWidth={1.5} className="animate-pulse"/>
+                  <line x1="56" y1="34" x2="62" y2="34" stroke="#06b6d4" strokeWidth={1.5} className="animate-pulse"/>
+                  <circle cx="50" cy="33" r="1.5" fill="#ec4899"/>
+                  {/* Scanning laser */}
+                  <line x1="28" y1="33" x2="72" y2="33" stroke="#06b6d4" strokeWidth={0.5} className="animate-pulse opacity-50"/>
+                  {/* Glass reflections */}
+                  <path d="M 34 30 L 40 36 M 58 30 L 64 36" stroke="#ffffff" strokeWidth={1} strokeOpacity={0.4} strokeLinecap="round"/>
+
+                  {/* Floating HUDs (Visible on hover) */}
+                  <g className="opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-700">
+                    {/* Left HUD */}
+                    <rect x="8" y="15" width="20" height="14" rx="1" fill="#06b6d4" fillOpacity={0.1} stroke="#06b6d4" strokeWidth={0.5}/>
+                    <line x1="10" y1="18" x2="25" y2="18" stroke="#06b6d4" strokeWidth={0.5}/>
+                    <line x1="10" y1="22" x2="20" y2="22" stroke="#06b6d4" strokeWidth={0.5}/>
+                    <line x1="10" y1="26" x2="25" y2="26" stroke="#06b6d4" strokeWidth={0.5}/>
+                    <path d="M 28 22 L 32 30" stroke="#06b6d4" strokeWidth={0.5} strokeDasharray="1 1"/>
+                    
+                    {/* Right HUD */}
+                    <rect x="72" y="10" width="20" height="18" rx="1" fill="#c084fc" fillOpacity={0.1} stroke="#c084fc" strokeWidth={0.5}/>
+                    <circle cx="82" cy="19" r="4" fill="none" stroke="#c084fc" strokeWidth={0.5} strokeDasharray="1 1" className="animate-spin-reverse" style={{ animationDuration: "4s" }}/>
+                    <circle cx="82" cy="19" r="2" fill="#c084fc" fillOpacity={0.5}/>
+                    <path d="M 72 20 L 68 30" stroke="#c084fc" strokeWidth={0.5} strokeDasharray="1 1"/>
+                  </g>
+
+                  {/* Holographic Keyboard Desk (Multi-Layered) */}
+                  <polygon points="5,105 95,105 80,75 20,75" fill="#06b6d4" fillOpacity={0.03} stroke="#06b6d4" strokeWidth={0.5}/>
+                  <polygon points="10,95 90,95 75,70 25,70" fill="#06b6d4" fillOpacity={0.1} stroke="#06b6d4" strokeWidth={1.5} className="group-hover/avatar:fill-opacity-0.2 transition-all duration-500"/>
+                  <polygon points="15,90 85,90 70,68 30,68" fill="#c084fc" fillOpacity={0.05} stroke="#c084fc" strokeWidth={0.5} className="group-hover/avatar:fill-opacity-0.15 transition-all duration-500"/>
+                  
+                  {/* Grid Lines */}
+                  <line x1="28" y1="80" x2="72" y2="80" stroke="#06b6d4" strokeWidth={0.5} opacity={0.5}/>
+                  <line x1="22" y1="88" x2="78" y2="88" stroke="#06b6d4" strokeWidth={0.5} opacity={0.5}/>
+                  <line x1="40" y1="70" x2="32" y2="95" stroke="#06b6d4" strokeWidth={0.5} opacity={0.5}/>
+                  <line x1="60" y1="70" x2="68" y2="95" stroke="#06b6d4" strokeWidth={0.5} opacity={0.5}/>
+
+                  {/* Animated typing hands & arms */}
+                  <path d="M 16 78 Q 28 72 32 85" fill="none" stroke="#1e293b" strokeWidth={8} strokeLinecap="round"/>
+                  <path d="M 84 78 Q 72 72 68 85" fill="none" stroke="#1e293b" strokeWidth={8} strokeLinecap="round"/>
+                  {/* Cyber Cuffs */}
+                  <line x1="28" y1="80" x2="36" y2="82" stroke="#06b6d4" strokeWidth={2.5} strokeLinecap="round"/>
+                  <line x1="72" y1="80" x2="64" y2="82" stroke="#06b6d4" strokeWidth={2.5} strokeLinecap="round"/>
+                  <line x1="30" y1="78" x2="35" y2="79" stroke="#c084fc" strokeWidth={1} strokeLinecap="round"/>
+                  <line x1="70" y1="78" x2="65" y2="79" stroke="#c084fc" strokeWidth={1} strokeLinecap="round"/>
+
+                  {/* Left Hand Fingers */}
+                  <path d="M 32 85 L 36 88 M 30 86 L 33 90 M 28 87 L 30 91" stroke="#cbd5e1" strokeWidth={2} strokeLinecap="round"/>
+                  {/* Right Hand Fingers */}
+                  <path d="M 68 85 L 64 88 M 70 86 L 67 90 M 72 87 L 70 91" stroke="#cbd5e1" strokeWidth={2} strokeLinecap="round"/>
+                  
+                  {/* Glowing Fingertips tapping keys */}
+                  <circle cx="36" cy="88" r="1.5" fill="#06b6d4" className="animate-pulse"/>
+                  <circle cx="33" cy="90" r="1.5" fill="#06b6d4" className="animate-pulse" style={{ animationDelay: "0.1s" }}/>
+                  <circle cx="64" cy="88" r="1.5" fill="#06b6d4" className="animate-pulse" style={{ animationDelay: "0.2s" }}/>
+                  <circle cx="67" cy="90" r="1.5" fill="#06b6d4" className="animate-pulse" style={{ animationDelay: "0.3s" }}/>
+
+                  {/* Individual Glowing Keys on Keyboard */}
+                  <rect x="42" y="85" width="16" height="4" rx="1" fill="#06b6d4" fillOpacity={0.8} className="animate-pulse"/>
+                  <rect x="30" y="82" width="8" height="3" rx="0.5" fill="#c084fc" fillOpacity="0.8" className="animate-pulse" style={{ animationDelay: "0.2s" }}/>
+                  <rect x="62" y="82" width="8" height="3" rx="0.5" fill="#c084fc" fillOpacity="0.8" className="animate-pulse" style={{ animationDelay: "0.5s" }}/>
+                  <rect x="36" y="91" width="6" height="4" rx="1" fill="#f472b6" fillOpacity="0.9"/>
+                  <rect x="58" y="91" width="6" height="4" rx="1" fill="#f472b6" fillOpacity="0.9"/>
+                  
+                  {/* Emitting Holographic Data Rings from Keyboard */}
+                  <ellipse cx="50" cy="85" rx="35" ry="10" fill="none" stroke="#c084fc" strokeWidth="0.5" strokeDasharray="4 4" className="animate-ping opacity-0 group-hover/avatar:opacity-100" style={{ animationDuration: "3s" }}/>
+                  <ellipse cx="50" cy="70" rx="50" ry="15" fill="none" stroke="#06b6d4" strokeWidth="0.5" strokeOpacity="0.4" className="animate-ping opacity-0 group-hover/avatar:opacity-100" style={{ animationDelay: "1.5s", animationDuration: "3s" }}/>
+                </svg>
+                <div className="terminal-scanline"></div>
+              </div>
+            </div>
+
+            {/* Right: Console Output */}
+            <div className="terminal-console-output font-mono">
+              <div className="console-line">
+                <span className="prompt-arrow">➜</span> <span className="prompt-tilde">~</span> <span className="prompt-cmd">whoami</span>
+              </div>
+              <div className="console-response whoami-name">
+                zzzigrok
+              </div>
+              
+              <div className="console-line pt-2">
+                <span className="prompt-arrow">➜</span> <span className="prompt-tilde">~</span> <span className="prompt-cmd">cat</span> profile.md
+              </div>
+              <div className="console-response profile-text">
+                <p>Разработчик, исследователь в области Machine Learning и создатель архитектуры <span className="text-cyan-glow">Tolstoy-CLI</span>.</p>
+                <p>Моя цель — разрушить барьер непонимания вокруг Больших Языковых Моделей (LLM). Этот проект был написан с нуля, чтобы показать, что ИИ — это не магия корпораций, а элегантная математика, доступная каждому.</p>
+                <p className="profile-quote">"Код должен читаться как хорошая литература. Именно поэтому мы тренируем сеть на Толстом."</p>
+              </div>
+
+              {/* Links */}
+              <div className="console-links pt-4">
+                <a href="https://github.com/zzzigrok" target="_blank" rel="noopener noreferrer" className="terminal-btn-link">
+                  <GitHubIcon className="github-icon" />
+                  <span>GitHub Profile</span>
+                </a>
+                <div className="terminal-status-badge">
+                  <span className="status-dot">●</span>Status: Coding
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -154,49 +382,296 @@ function Developer() {
 
 function Philosophy() {
   return (
-    <section className="section-shell philosophy-section" id="philosophy">
-      <div className="quote-panel">
-        <p className="quote">То, что я не могу создать, я не понимаю.</p>
-        <p className="quote-author">Ричард Фейнман</p>
+    <section className="section-shell philosophy-section-new" id="philosophy">
+      <div className="philosophy-glow-orbs">
+        <div className="phil-orb-1"></div>
+        <div className="phil-orb-2"></div>
       </div>
-      <div className="philosophy-list">
-        {[
-          "Понимать архитектуру, а не только запускать готовые веса.",
-          "Собирать корпус осознанно: русский язык, литература, чистые данные.",
-          "Делать инструменты, которые можно разобрать, изменить и обучить заново."
-        ].map((item) => (
-          <article className="philosophy-item" key={item}>
-            <span />
-            <p>{item}</p>
-          </article>
-        ))}
+
+      <div className="philosophy-grid relative">
+        <div className="philosophy-left-col">
+          <div className="philosophy-title-box">
+            <h2>Философия проекта</h2>
+            <div className="phil-title-divider"></div>
+            <p className="philosophy-lead">
+              Современный ИИ часто воспринимается как волшебство, доступное только мегакорпорациям. Наша цель — <strong>демократизация понимания</strong>.
+            </p>
+          </div>
+
+          <div className="philosophy-cards-stack">
+            {philosophyPoints.map((point, index) => (
+              <div key={point.title} className="glass-card phil-feature-card group">
+                <div className={`phil-icon-box ${index === 0 ? "purple" : "cyan"}`}>
+                  <svg className="phil-card-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {index === 0 ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    )}
+                  </svg>
+                </div>
+                <div className="phil-card-content">
+                  <h4>{point.title}</h4>
+                  <p>{point.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right column: Feynman Quote */}
+        <div className="philosophy-right-col">
+          <div className="phil-quote-bg-glow"></div>
+          <div className="glass-card phil-quote-card hover:-translate-y-2">
+            <div className="inspiration-badge">
+              <span className="inspiration-dot"></span>
+              Inspiration
+            </div>
+
+            <svg className="phil-quote-marks-svg" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+            </svg>
+            
+            <div className="phil-quote-content">
+              <p className="feynman-quote-text animated-gradient-text italic">
+                То, что я не могу создать, я не понимаю.
+              </p>
+              <p className="feynman-quote-english font-mono">
+                // What I cannot create, I do not understand.
+              </p>
+            </div>
+            
+            <div className="feynman-author-box">
+              <div className="feynman-avatar-wrapper group">
+                <div className="feynman-avatar-glow"></div>
+                <svg className="feynman-avatar-spinner" viewBox="0 0 100 100" fill="none">
+                  <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="1" strokeDasharray="8 4"></circle>
+                  <circle cx="50" cy="2" r="2" fill="#06b6d4"></circle>
+                </svg>
+                <div className="feynman-img-container">
+                  <img src="https://upload.wikimedia.org/wikipedia/en/4/42/Richard_Feynman_Nobel.jpg" alt="Ричард Фейнман" className="feynman-avatar-img" />
+                </div>
+              </div>
+              <div className="feynman-author-info">
+                <h4>Ричард Фейнман</h4>
+                <p>Нобелевский лауреат по физике</p>
+              </div>
+              
+              {/* Detailed physicist SVG */}
+              <div className="physicist-svg-container group/physicist">
+                <div className="physicist-glow-effect"></div>
+                <svg className="physicist-svg" viewBox="0 0 100 100" fill="none">
+                  <g className="physicist-symbols" fill="#22d3ee" fontFamily="serif" fontWeight="bold" fontSize="12px">
+                    <text x="6" y="30">
+                      ∑
+                      <animate attributeName="y" values="30; 25; 30" dur="2s" repeatCount="indefinite" />
+                    </text>
+                    <text x="82" y="25">
+                      ∫
+                      <animate attributeName="y" values="25; 20; 25" dur="2.5s" repeatCount="indefinite" />
+                    </text>
+                    <text x="75" y="65" opacity="0.8">
+                      ψ
+                      <animate attributeName="opacity" values="0.3; 1; 0.3" dur="2s" repeatCount="indefinite" />
+                    </text>
+                    <text x="10" y="60" opacity="0.8">
+                      π
+                      <animate attributeName="opacity" values="0.3; 1; 0.3" dur="3s" repeatCount="indefinite" />
+                    </text>
+                  </g>
+
+                  <rect x="32" y="22" width="36" height="40" rx="14" fill="#cbd5e1" className="physicist-face" />
+                  <circle cx="30" cy="42" r="4" fill="#94a3b8" />
+                  <circle cx="70" cy="42" r="4" fill="#94a3b8" />
+
+                  <path d="M 28 35 Q 35 12 50 12 Q 65 12 72 35 Q 65 6 50 6 Q 35 6 28 35 Z" fill="#475569" />
+                  <path d="M 32 25 Q 40 2 55 12" stroke="#475569" strokeWidth="3" strokeLinecap="round" fill="none" />
+                  <path d="M 68 25 Q 60 2 45 12" stroke="#475569" strokeWidth="3" strokeLinecap="round" fill="none" />
+                  <path d="M 50 12 Q 55 0 65 15" stroke="#475569" strokeWidth="2" strokeLinecap="round" fill="none" />
+
+                  <rect x="34" y="36" width="14" height="10" rx="2" fill="#0f172a" stroke="#06b6d4" strokeWidth="1.5" className="physicist-specs" />
+                  <rect x="52" y="36" width="14" height="10" rx="2" fill="#0f172a" stroke="#06b6d4" strokeWidth="1.5" className="physicist-specs" />
+                  <line x1="48" y1="41" x2="52" y2="41" stroke="#06b6d4" strokeWidth="1.5" className="physicist-specs" />
+
+                  <rect x="35" y="37" width="12" height="8" rx="1" fill="#06b6d4" fillOpacity="0.1" className="physicist-lens" />
+                  <rect x="53" y="37" width="12" height="8" rx="1" fill="#06b6d4" fillOpacity="0.1" className="physicist-lens" />
+
+                  <circle cx="43" cy="41" r="1.5" fill="#fff" className="physicist-glare" />
+                  <circle cx="61" cy="41" r="1.5" fill="#fff" className="physicist-glare" />
+                  
+                  <path d="M 42 53 Q 50 58 58 53" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+
+                  <path d="M 22 95 L 22 75 Q 50 60 78 75 L 78 95" fill="#1e293b" stroke="#334155" strokeWidth="2" />
+                  <polygon points="42,65 58,65 50,88" fill="#f8fafc" />
+                  <polygon points="48,65 52,65 54,85 50,92 46,85" fill="#7e22ce" className="physicist-tie" />
+
+                  <path d="M 42 65 L 32 88 L 42 95 M 58 65 L 68 88 L 58 95" stroke="#334155" strokeWidth="1.5" fill="none" />
+                  
+                  <line x1="62" y1="80" x2="72" y2="80" stroke="#334155" strokeWidth="1.5" />
+                  <line x1="64" y1="74" x2="64" y2="80" stroke="#cbd5e1" strokeWidth="1.5" />
+                  <line x1="68" y1="72" x2="68" y2="80" stroke="#06b6d4" strokeWidth="1.5" className="physicist-pen" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div className="phil-deco-circle-1"></div>
+          <div className="phil-deco-circle-2"></div>
+          <div className="phil-deco-circle-3"></div>
+          <svg className="phil-deco-plus" fill="none" stroke="currentColor" strokeWidth="1">
+            <path d="M12 2v20m10-10H2" />
+          </svg>
+        </div>
       </div>
     </section>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="stat-card">
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
   );
 }
 
 function Footer() {
   return (
     <footer className="site-footer">
-      <a className="brand" href="#top" aria-label="Tolstoy-CLI, наверх">
-        <BookIcon className="brand-icon" />
-        <span>
-          Tolstoy<span>-CLI</span>
-        </span>
-      </a>
-      <p>Образовательный фреймворк для изучения языковых моделей. MIT License, 2026.</p>
-      <a href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label="Открыть Tolstoy-CLI на GitHub">
-        <GitHubIcon className="github-icon" />
-      </a>
+      <div className="footer-container">
+        <a className="brand" href="#top" aria-label="Tolstoy-CLI, наверх">
+          <svg className="brand-logo-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>Tolstoy<span>-CLI</span></span>
+        </a>
+        <p>
+          Образовательный фреймворк для изучения языковых моделей.<br />
+          &copy; 2026 Проект Tolstoy-CLI. Все права защищены (MIT License).
+        </p>
+        <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="footer-github-icon" aria-label="Открыть Tolstoy-CLI на GitHub">
+          <GitHubIcon className="github-icon" />
+        </a>
+      </div>
     </footer>
+  );
+}
+
+function Background() {
+  return (
+    <div className="ambient-bg">
+      <div className="orb orb-1"></div>
+      <div className="orb orb-2"></div>
+      <div className="orb orb-3"></div>
+      
+      {/* Detailed Flying Books */}
+      <div className="flying-books-container">
+        {/* Type 1: Detailed Open Book with Data Nodes */}
+        <svg className="book-fly fly-1" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M50 15 C 30 15, 15 25, 10 35 L 10 85 C 15 75, 30 65, 50 65 C 70 65, 85 75, 90 85 L 90 35 C 85 25, 70 15, 50 15 Z" fill="currentColor" fillOpacity="0.05" strokeWidth="2"/>
+          <path d="M50 15 L 50 65" strokeWidth="2"/>
+          <path d="M14 42 C 24 35, 38 31, 46 32" strokeWidth="1.5" strokeOpacity="0.6"/>
+          <path d="M14 50 C 24 43, 38 39, 46 40" strokeWidth="1.5" strokeOpacity="0.6"/>
+          <path d="M14 58 C 24 51, 38 47, 46 48" strokeWidth="1.5" strokeOpacity="0.6"/>
+          <path d="M86 42 C 76 35, 62 31, 54 32" strokeWidth="1.5" strokeOpacity="0.6"/>
+          <path d="M86 50 C 76 43, 62 39, 54 40" strokeWidth="1.5" strokeOpacity="0.6"/>
+          <path d="M86 58 C 76 51, 62 47, 54 48" strokeWidth="1.5" strokeOpacity="0.6"/>
+          <circle cx="25" cy="20" r="1.5" fill="#fff" className="animate-pulse"/>
+          <circle cx="75" cy="25" r="1" fill="#fff" className="animate-pulse"/>
+          <circle cx="50" cy="5" r="2" fill="#fff" fillOpacity="0.5"/>
+          <path d="M50 15 L 50 5" strokeDasharray="2 2" strokeWidth="1" strokeOpacity="0.5"/>
+          <path d="M25 20 L 15 10" strokeDasharray="1 3" strokeWidth="1" strokeOpacity="0.4"/>
+        </svg>
+        
+        {/* Type 2: Heavy Classic Tome with Bookmark */}
+        <svg className="book-fly fly-2" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M 20 20 L 70 30 L 65 80 L 15 70 Z" fill="currentColor" fillOpacity="0.05" strokeWidth="1.5"/>
+          <path d="M 15 70 L 65 80 L 70 75 L 20 65 Z" fill="currentColor" fillOpacity="0.3" stroke="none"/>
+          <path d="M 70 30 L 65 80 L 70 75 L 75 25 Z" fill="currentColor" fillOpacity="0.2" stroke="none"/>
+          <path d="M 25 15 L 75 25 L 70 75 L 20 65 Z" fill="currentColor" fillOpacity="0.15" strokeWidth="2"/>
+          <line x1="24" y1="25" x2="74" y2="35" strokeWidth="1" strokeOpacity="0.5"/>
+          <line x1="22" y1="45" x2="72" y2="55" strokeWidth="1" strokeOpacity="0.5"/>
+          <path d="M 50 71 L 55 90 L 60 85 L 65 92 L 60 73" fill="#ec4899" fillOpacity="0.6" stroke="#ec4899" strokeWidth="1"/>
+          <circle cx="47" cy="45" r="8" strokeWidth="1" strokeDasharray="2 2"/>
+          <circle cx="47" cy="45" r="3" fill="currentColor" fillOpacity="0.5"/>
+          <path d="M 47 37 L 47 53 M 39 45 L 55 45" strokeWidth="0.5"/>
+        </svg>
+
+        {/* Type 3: Isometric Digital Book Matrix */}
+        <svg className="book-fly fly-3" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="50,40 85,55 50,70 15,55" fill="currentColor" fillOpacity="0.05" strokeWidth="1.5"/>
+          <polygon points="15,55 50,70 50,80 15,65" fill="currentColor" fillOpacity="0.2" strokeWidth="1.5"/>
+          <polygon points="85,55 50,70 50,80 85,65" fill="currentColor" fillOpacity="0.1" strokeWidth="1.5"/>
+          <polygon points="50,25 80,40 50,55 20,40" fill="currentColor" fillOpacity="0.15" strokeWidth="1.5" transform="translate(0, -5)"/>
+          <polygon points="20,40 50,55 50,60 20,45" fill="currentColor" fillOpacity="0.25" strokeWidth="1.5" transform="translate(0, -5)"/>
+          <polygon points="80,40 50,55 50,60 80,45" fill="currentColor" fillOpacity="0.15" strokeWidth="1.5" transform="translate(0, -5)"/>
+          <polygon points="50,10 75,25 50,40 25,25" fill="none" strokeWidth="1.5" strokeDasharray="3 3" transform="translate(0, -10)"/>
+          <path d="M50 40 L 50 10" strokeWidth="1" strokeDasharray="2 2" transform="translate(0, -10)"/>
+          <circle cx="50" cy="0" r="2" fill="#fff" className="animate-pulse"/>
+          <path d="M35 30 L 65 43 M 35 43 L 65 30" strokeWidth="0.5" strokeOpacity="0.5" transform="translate(0, -5)"/>
+        </svg>
+
+        {/* Type 4: Floating Holographic Manuscript */}
+        <svg className="book-fly fly-4" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M50 20 C 25 20, 10 35, 5 50 L 5 90 C 10 75, 25 60, 50 60 C 75 60, 90 75, 95 90 L 95 50 C 90 35, 75 20, 50 20 Z" fill="currentColor" fillOpacity="0.05" strokeWidth="1.5"/>
+          <path d="M50 20 L 50 60" strokeWidth="1.5" strokeDasharray="4 4"/>
+          <path d="M 15 50 C 25 42, 40 38, 45 40" strokeWidth="1" strokeDasharray="2 2"/>
+          <path d="M 85 50 C 75 42, 60 38, 55 40" strokeWidth="1" strokeDasharray="2 2"/>
+        </svg>
+
+        {/* Type 5: Mid-ground Floating Tome */}
+        <svg className="book-fly fly-5" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M 25 15 L 75 25 L 70 75 L 20 65 Z" fill="currentColor" fillOpacity="0.1" strokeWidth="2"/>
+          <path d="M 20 65 L 70 75 L 65 80 L 15 70 Z" fill="currentColor" fillOpacity="0.3" stroke="none"/>
+          <circle cx="47" cy="45" r="5" strokeWidth="1"/>
+          <line x1="24" y1="25" x2="74" y2="35" strokeWidth="1" strokeOpacity="0.5"/>
+        </svg>
+
+        {/* Type 6: Abstract Flowing Scroll */}
+        <svg className="book-fly fly-6" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M 20 20 C 40 10, 60 30, 80 20 L 80 80 C 60 90, 40 70, 20 80 Z" fill="currentColor" fillOpacity="0.05" strokeWidth="2"/>
+          <path d="M 30 35 C 45 28, 55 42, 70 35" strokeWidth="1.5" strokeDasharray="4 2 1 2"/>
+          <path d="M 30 45 C 45 38, 55 52, 70 45" strokeWidth="1.5" strokeDasharray="3 3"/>
+          <path d="M 30 55 C 45 48, 55 62, 70 55" strokeWidth="1.5" strokeDasharray="2 4 4 2"/>
+          <path d="M 30 65 C 45 58, 55 72, 70 65" strokeWidth="1.5" strokeDasharray="5 2"/>
+          <path d="M 10 50 C 30 20, 70 80, 90 50" strokeWidth="1" strokeOpacity="0.5" fill="none" className="animate-dash-flow" strokeDasharray="10 10"/>
+        </svg>
+
+        {/* Extra Books */}
+        <svg className="book-fly fly-7" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="50,25 80,40 50,55 20,40" fill="currentColor" fillOpacity="0.1" strokeWidth="1.5"/>
+          <polygon points="20,40 50,55 50,65 20,50" fill="currentColor" fillOpacity="0.25" strokeWidth="1.5"/>
+          <polygon points="80,40 50,55 50,65 80,50" fill="currentColor" fillOpacity="0.1" strokeWidth="1.5"/>
+          <circle cx="50" cy="40" r="3" fill="#fff" fillOpacity="0.5"/>
+        </svg>
+
+        <svg className="book-fly fly-8" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M50 15 C 30 15, 15 25, 10 35 L 10 85 C 15 75, 30 65, 50 65 C 70 65, 85 75, 90 85 L 90 35 C 85 25, 70 15, 50 15 Z" strokeWidth="1.5"/>
+          <path d="M50 15 L 50 65" strokeWidth="1.5"/>
+        </svg>
+
+        <svg className="book-fly fly-9" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M 25 15 L 75 25 L 70 75 L 20 65 Z" fill="currentColor" fillOpacity="0.1" strokeWidth="2"/>
+          <line x1="24" y1="25" x2="74" y2="35" strokeWidth="1"/>
+        </svg>
+
+        <svg className="book-fly fly-10" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M 20 20 C 40 10, 60 30, 80 20 L 80 80 C 60 90, 40 70, 20 80 Z" strokeWidth="1.5"/>
+          <path d="M 30 45 C 45 38, 55 52, 70 45" strokeWidth="1" strokeDasharray="3 3"/>
+        </svg>
+        
+        <svg className="book-fly fly-11" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M50 15 C 30 15, 15 25, 10 35 L 10 85 C 15 75, 30 65, 50 65 C 70 65, 85 75, 90 85 L 90 35 C 85 25, 70 15, 50 15 Z" fill="currentColor" fillOpacity="0.1" strokeWidth="1.5"/>
+        </svg>
+
+        <svg className="book-fly fly-12" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="50,25 80,40 50,55 20,40" fill="currentColor" fillOpacity="0.2" strokeWidth="1.5"/>
+          <polygon points="20,40 50,55 50,60 20,45" fill="currentColor" fillOpacity="0.4" strokeWidth="1.5"/>
+          <polygon points="80,40 50,55 50,60 80,45" fill="currentColor" fillOpacity="0.1" strokeWidth="1.5"/>
+        </svg>
+      </div>
+
+      {/* Abstract SVG background connections */}
+      <svg className="bg-connections-svg animate-rotate-slow" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+        <g stroke="rgba(255,255,255,0.05)" strokeWidth="1" fill="none">
+          <circle cx="500" cy="500" r="300" strokeDasharray="4 12" />
+          <circle cx="500" cy="500" r="450" strokeDasharray="2 20" />
+          <path d="M200,500 L800,500" strokeDasharray="5 5" />
+          <path d="M500,200 L500,800" strokeDasharray="5 5" />
+        </g>
+      </svg>
+    </div>
   );
 }
