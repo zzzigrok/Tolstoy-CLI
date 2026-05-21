@@ -2881,6 +2881,8 @@ button {
   filter: blur(100px);
   opacity: 0.5;
   animation: float 20s infinite ease-in-out;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .orb-1 {

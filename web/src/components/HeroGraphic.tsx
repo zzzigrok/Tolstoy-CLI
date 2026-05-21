@@ -19,18 +19,40 @@ export function HeroGraphic() {
     let smNormX = 0;
     let smNormY = 0;
     let animFrameId: number;
+    let isVisible = true;
+    let isMoving = true;
 
     const handleMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
+      if (!isMoving && isVisible) {
+        isMoving = true;
+        animateSVG(); // Restart loop
+      }
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+
+    // Performance optimization: Stop animation when not visible
+    const observer = new IntersectionObserver(
+      (entries) => {
+        isVisible = entries[0].isIntersecting;
+        if (isVisible && !isMoving) {
+          isMoving = true;
+          animateSVG();
+        }
+      },
+      { threshold: 0 }
+    );
+
+    if (physicsWrapperRef.current) {
+      observer.observe(physicsWrapperRef.current);
+    }
 
     const animateSVG = () => {
       const wrapper = physicsWrapperRef.current;
-      if (!wrapper) {
-        animFrameId = requestAnimationFrame(animateSVG);
+      if (!wrapper || !isVisible) {
+        isMoving = false;
         return;
       }
 
@@ -51,8 +73,29 @@ export function HeroGraphic() {
       const targetDx = dist > 0 ? (rawDx / dist) * force * maxDisplacement : 0;
       const targetDy = dist > 0 ? (rawDy / dist) * force * maxDisplacement : 0;
 
-      smoothedDx += (targetDx - smoothedDx) * 0.1;
-      smoothedDy += (targetDy - smoothedDy) * 0.1;
+      const deltaDx = targetDx - smoothedDx;
+      const deltaDy = targetDy - smoothedDy;
+
+      const normX = (mouseX / window.innerWidth - 0.5) * 2;
+      const normY = (mouseY / window.innerHeight - 0.5) * 2;
+      const deltaNx = normX - smNormX;
+      const deltaNy = normY - smNormY;
+
+      // Stop loop if changes are negligible (settled state)
+      if (
+        Math.abs(deltaDx) < 0.05 &&
+        Math.abs(deltaDy) < 0.05 &&
+        Math.abs(deltaNx) < 0.005 &&
+        Math.abs(deltaNy) < 0.005
+      ) {
+        isMoving = false;
+        return;
+      }
+
+      smoothedDx += deltaDx * 0.1;
+      smoothedDy += deltaDy * 0.1;
+      smNormX += deltaNx * 0.1;
+      smNormY += deltaNy * 0.1;
 
       const stretchVelocity = Math.sqrt(smoothedDx * smoothedDx + smoothedDy * smoothedDy);
       const angle = Math.atan2(smoothedDy, smoothedDx);
@@ -61,11 +104,6 @@ export function HeroGraphic() {
       const scaleY = 1 - stretchVelocity * 0.001;
 
       // 3D Tilt calculations
-      const normX = (mouseX / window.innerWidth - 0.5) * 2;
-      const normY = (mouseY / window.innerHeight - 0.5) * 2;
-      smNormX += (normX - smNormX) * 0.1;
-      smNormY += (normY - smNormY) * 0.1;
-
       const tiltX = smNormY * -20;
       const tiltY = smNormX * 20;
 
@@ -117,9 +155,9 @@ export function HeroGraphic() {
       const panel1 = panel1Ref.current;
       const panel2 = panel2Ref.current;
       const panel3 = panel3Ref.current;
-      if (panel1) panel1.style.transform = `translate(${smNormX * -10}px, ${smNormY * -10}px)`;
-      if (panel2) panel2.style.transform = `translate(${smNormX * -15}px, ${smNormY * -15}px)`;
-      if (panel3) panel3.style.transform = `translate(${smNormX * -5}px, ${smNormY * -5}px)`;
+      if (panel1) panel1.style.transform = `translate3d(${smNormX * -10}px, ${smNormY * -10}px, 0)`;
+      if (panel2) panel2.style.transform = `translate3d(${smNormX * -15}px, ${smNormY * -15}px, 0)`;
+      if (panel3) panel3.style.transform = `translate3d(${smNormX * -5}px, ${smNormY * -5}px, 0)`;
 
       animFrameId = requestAnimationFrame(animateSVG);
     };
@@ -129,6 +167,7 @@ export function HeroGraphic() {
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       cancelAnimationFrame(animFrameId);
+      observer.disconnect();
     };
   }, []);
 
