@@ -777,3 +777,78 @@ function RoPEYaRNDoc() {
     </article>
   );
 }
+
+// ----------------------------------------------------
+// 6. MoE & SwiGLU DOCUMENT
+// ----------------------------------------------------
+function MoEDoc() {
+  return (
+    <article className="docs-article">
+      <div className="docs-article-header">
+        <h1>Sparse MoE & SwiGLU: Эффективные Эксперты</h1>
+        <p className="docs-lead-paragraph">
+          В этом разделе мы разберем реализацию <strong>Sparse Mixture of Experts</strong> и 
+          функции активации <strong>SwiGLU</strong> в TolstoyLLM_v5.
+        </p>
+      </div>
+
+      <hr className="docs-divider" />
+
+      <h2>🧩 Идея Mixture of Experts (MoE)</h2>
+      <p>
+        Вместо того чтобы прогонять каждый токен через один огромный слой, мы используем 8 маленьких "экспертов". 
+        Для каждого токена <strong>маршрутизатор (Router)</strong> выбирает 2 наиболее подходящих.
+      </p>
+
+      <div className="docs-diagram-container">
+        <div className="diagram-title">Принцип работы Sparse MoE (Top-2 Routing)</div>
+        <div className="moe-visual-flow">
+          <div className="moe-token">Входной токен</div>
+          <div className="moe-arrow">↓</div>
+          <div className="moe-router-box">Router (Терапевт)</div>
+          <div className="moe-split">
+            <div className="moe-expert-path active">Эксперт 1 (Вес 0.7)</div>
+            <div className="moe-expert-path active">Эксперт 2 (Вес 0.3)</div>
+            <div className="moe-expert-path disabled">Эксперт 3 (0.0)</div>
+            <div className="moe-expert-path disabled">...</div>
+          </div>
+          <div className="moe-merge">Σ Сложение с весами</div>
+          <div className="moe-arrow">↓</div>
+          <div className="moe-output">Выходной вектор</div>
+        </div>
+      </div>
+
+      <h3>Преимущества:</h3>
+      <ul>
+        <li><strong>Масштабируемость:</strong> Можно увеличить количество параметров модели в 4-8 раз, сохранив прежнюю скорость инференса.</li>
+        <li><strong>Специализация:</strong> Разные эксперты учатся обрабатывать разные типы данных (код, стихи, логика).</li>
+      </ul>
+
+      <hr className="docs-divider" />
+
+      <h2>⚡ SwiGLU Activation</h2>
+      <p>
+        В блоках экспертов используется современная функция активации <strong>SwiGLU</strong>, которая стала стандартом в моделях 
+        уровня LLaMA и PaLM.
+      </p>
+
+      <Math formula="\text{SwiGLU}(x) = (\text{SiLU}(x W) \cdot x V) G" block={true} />
+
+      <CodeBlock code={`class FeedForward(nn.Module):
+    def __init__(self, dim, hidden_dim, multiple_of=256):
+        super().__init__()
+        # SwiGLU требует 3 матрицы вместо 2
+        self.w1 = nn.Linear(dim, hidden_dim, bias=False)
+        self.w2 = nn.Linear(hidden_dim, dim, bias=False)
+        self.w3 = nn.Linear(dim, hidden_dim, bias=False)
+
+    def forward(self, x):
+        return self.w2(F.silu(self.w1(x)) * self.w3(x))`} language="python" />
+
+      <AlertBox type="tip" title="Load Balancing">
+        Чтобы маршрутизатор не отправлял все токены только одному "любимому" эксперту, мы используем 
+        <strong>Load Balancing Loss</strong>, который штрафует за неравномерное распределение нагрузки.
+      </AlertBox>
+    </article>
+  );
+}
