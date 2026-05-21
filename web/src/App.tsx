@@ -400,7 +400,7 @@ function Philosophy() {
 
           <div className="philosophy-cards-stack">
             {philosophyPoints.map((point, index) => (
-              <div key={point.title} className="glass-card phil-feature-card group">
+              <div key={point.title} className={`glass-card phil-feature-card group ${index === 0 ? "purple" : "cyan"}`}>
                 <div className={`phil-icon-box ${index === 0 ? "purple" : "cyan"}`}>
                   <svg className="phil-card-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     {index === 0 ? (
@@ -442,19 +442,21 @@ function Philosophy() {
             </div>
             
             <div className="feynman-author-box">
-              <div className="feynman-avatar-wrapper group">
-                <div className="feynman-avatar-glow"></div>
-                <svg className="feynman-avatar-spinner" viewBox="0 0 100 100" fill="none">
-                  <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="1" strokeDasharray="8 4"></circle>
-                  <circle cx="50" cy="2" r="2" fill="#06b6d4"></circle>
-                </svg>
-                <div className="feynman-img-container">
-                  <img src="https://upload.wikimedia.org/wikipedia/en/4/42/Richard_Feynman_Nobel.jpg" alt="Ричард Фейнман" className="feynman-avatar-img" />
+              <div className="feynman-author-meta">
+                <div className="feynman-avatar-wrapper group">
+                  <div className="feynman-avatar-glow"></div>
+                  <svg className="feynman-avatar-spinner" viewBox="0 0 100 100" fill="none">
+                    <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="1" strokeDasharray="8 4"></circle>
+                    <circle cx="50" cy="2" r="2" fill="#06b6d4"></circle>
+                  </svg>
+                  <div className="feynman-img-container">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/4/42/Richard_Feynman_Nobel.jpg" alt="Ричард Фейнман" className="feynman-avatar-img" />
+                  </div>
                 </div>
-              </div>
-              <div className="feynman-author-info">
-                <h4>Ричард Фейнман</h4>
-                <p>Нобелевский лауреат по физике</p>
+                <div className="feynman-author-info">
+                  <h4>Ричард Фейнман</h4>
+                  <p>Нобелевский лауреат по физике</p>
+                </div>
               </div>
               
               {/* Detailed physicist SVG */}

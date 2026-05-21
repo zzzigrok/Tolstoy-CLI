@@ -1316,11 +1316,11 @@ button {
   transition: color 0.3s ease;
 }
 
-.phil-feature-card:hover h4 {
+.phil-feature-card.purple:hover h4 {
   color: #c084fc;
 }
 
-.phil-feature-card:hover .cyan h4 {
+.phil-feature-card.cyan:hover h4 {
   color: #22d3ee;
 }
 
@@ -1432,6 +1432,13 @@ button {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   z-index: 10;
+}
+
+.feynman-author-meta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-grow: 1;
 }
 
 @media (max-width: 640px) {
@@ -1727,12 +1734,14 @@ button {
     min-height: 280px;
   }
   
+  .bento-card.moe-card,
   .bento-card.rms-swiglu-card {
     grid-column: span 2;
   }
 }
 
 @media (max-width: 640px) {
+  .bento-card.moe-card,
   .bento-card.rms-swiglu-card {
     grid-column: span 1;
   }
@@ -1859,10 +1868,10 @@ button {
   color: #22d3ee;
 }
 
-.bento-card:hover .gqa-card h3 { color: #c084fc; }
-.bento-card:hover .rope-card h3 { color: #f472b6; }
-.bento-card:hover .speculative-card h3 { color: #60a5fa; }
-.bento-card:hover .xquant-card h3 { color: #4ade80; }
+.bento-card.gqa-card:hover h3 { color: #c084fc; }
+.bento-card.rope-card:hover h3 { color: #f472b6; }
+.bento-card.speculative-card:hover h3 { color: #60a5fa; }
+.bento-card.xquant-card:hover h3 { color: #4ade80; }
 
 .bento-title-accent {
   color: #06b6d4;
@@ -2668,6 +2677,13 @@ button {
   margin-left: auto;
   position: relative;
   cursor: pointer;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .physicist-svg-container {
+    display: block;
+  }
 }
 .physicist-glow-effect {
   position: absolute;

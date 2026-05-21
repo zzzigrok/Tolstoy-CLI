@@ -140,7 +140,7 @@ export function HeroGraphic() {
       style={{ transformStyle: "preserve-3d", willChange: "transform" }}
     >
       <svg
-        className="hero-main-svg"
+        className="hero-main-svg animate-float overflow-visible"
         viewBox="0 0 300 300"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -257,29 +257,35 @@ export function HeroGraphic() {
           <circle ref={tetherEndRingRef} id="tether-end-ring" cx="150" cy="150" r="8" fill="none" stroke="#06b6d4" strokeWidth="1" className="animate-pulse" />
         </g>
 
-        <g ref={panel1Ref} id="ui-panel-1" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
-          <rect x="185" y="80" width="105" height="28" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(126, 34, 206, 0.4)" strokeWidth="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))" />
-          <path d="M 185 94 L 175 100 L 185 106" fill="none" stroke="rgba(126, 34, 206, 0.4)" strokeWidth="1" />
-          <text x="193" y="93" fontFamily="monospace" fontSize="6" fill="#c084fc" fontWeight="bold">Self-Attention</text>
-          <text x="193" y="102" fontFamily="monospace" fontSize="5" fill="#e2e8f0">Attention(Q,K,V) =</text>
-          <text x="193" y="108" fontFamily="monospace" fontSize="5" fill="#67e8f9">softmax(QKᵀ/√d)V</text>
+        <g className="animate-float" style={{ animationDelay: "-1.5s" }}>
+          <g ref={panel1Ref} id="ui-panel-1" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
+            <rect x="185" y="80" width="105" height="28" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(126, 34, 206, 0.4)" strokeWidth="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))" />
+            <path d="M 185 94 L 175 100 L 185 106" fill="none" stroke="rgba(126, 34, 206, 0.4)" strokeWidth="1" />
+            <text x="193" y="93" fontFamily="monospace" fontSize="6" fill="#c084fc" fontWeight="bold">Self-Attention</text>
+            <text x="193" y="102" fontFamily="monospace" fontSize="5" fill="#e2e8f0">Attention(Q,K,V) =</text>
+            <text x="193" y="108" fontFamily="monospace" fontSize="5" fill="#67e8f9">softmax(QKᵀ/√d)V</text>
+          </g>
         </g>
 
-        <g ref={panel2Ref} id="ui-panel-2" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
-          <rect x="10" y="90" width="75" height="32" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(6, 182, 212, 0.4)" strokeWidth="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))" />
-          <path d="M 85 106 L 95 112 L 85 118" fill="none" stroke="rgba(6, 182, 212, 0.4)" strokeWidth="1" />
-          <text x="16" y="102" fontFamily="monospace" fontSize="6" fill="#67e8f9" fontWeight="bold">TRAINING STATS</text>
-          <text x="16" y="112" fontFamily="monospace" fontSize="5" fill="#94a3b8">Loss: <tspan fill="#4ade80">0.832</tspan></text>
-          <text x="16" y="118" fontFamily="monospace" fontSize="5" fill="#94a3b8">Step: <tspan fill="#facc15">14,200</tspan></text>
-          <rect x="16" y="122" width="60" height="2" rx="1" fill="rgba(255,255,255,0.1)" />
-          <rect x="16" y="122" width="40" height="2" rx="1" fill="#06b6d4" />
+        <g className="animate-float" style={{ animationDelay: "-3.5s" }}>
+          <g ref={panel2Ref} id="ui-panel-2" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
+            <rect x="10" y="90" width="75" height="32" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(6, 182, 212, 0.4)" strokeWidth="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))" />
+            <path d="M 85 106 L 95 112 L 85 118" fill="none" stroke="rgba(6, 182, 212, 0.4)" strokeWidth="1" />
+            <text x="16" y="102" fontFamily="monospace" fontSize="6" fill="#67e8f9" fontWeight="bold">TRAINING STATS</text>
+            <text x="16" y="112" fontFamily="monospace" fontSize="5" fill="#94a3b8">Loss: <tspan fill="#4ade80">0.832</tspan></text>
+            <text x="16" y="118" fontFamily="monospace" fontSize="5" fill="#94a3b8">Step: <tspan fill="#facc15">14,200</tspan></text>
+            <rect x="16" y="122" width="60" height="2" rx="1" fill="rgba(255,255,255,0.1)" />
+            <rect x="16" y="122" width="40" height="2" rx="1" fill="#06b6d4" />
+          </g>
         </g>
 
-        <g ref={panel3Ref} id="ui-panel-3" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
-          <rect x="175" y="210" width="90" height="22" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(236, 72, 153, 0.4)" strokeWidth="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))" />
-          <path d="M 175 221 L 165 210 L 175 200" fill="none" stroke="rgba(236, 72, 153, 0.4)" strokeWidth="1" />
-          <text x="182" y="220" fontFamily="monospace" fontSize="5" fill="#f472b6" fontWeight="bold">BPE Tokenizer</text>
-          <text x="182" y="227" fontFamily="monospace" fontSize="5" fill="#cbd5e1">idx: [504, 219, 9031]</text>
+        <g className="animate-float" style={{ animationDelay: "-5s" }}>
+          <g ref={panel3Ref} id="ui-panel-3" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
+            <rect x="175" y="210" width="90" height="22" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(236, 72, 153, 0.4)" strokeWidth="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))" />
+            <path d="M 175 221 L 165 210 L 175 200" fill="none" stroke="rgba(236, 72, 153, 0.4)" strokeWidth="1" />
+            <text x="182" y="220" fontFamily="monospace" fontSize="5" fill="#f472b6" fontWeight="bold">BPE Tokenizer</text>
+            <text x="182" y="227" fontFamily="monospace" fontSize="5" fill="#cbd5e1">idx: [504, 219, 9031]</text>
+          </g>
         </g>
       </svg>
     </div>
