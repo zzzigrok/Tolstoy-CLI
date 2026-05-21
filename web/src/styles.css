@@ -2651,6 +2651,7 @@ button {
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 40px;
+  width: 100%;
 }
 
 @media (max-width: 1024px) {
@@ -2757,11 +2758,42 @@ button {
   border-radius: 1.5rem;
   padding: 40px;
   min-height: 500px;
+  min-width: 0;
 }
 
 @media (max-width: 640px) {
+  .docs-page-wrapper {
+    overflow-x: hidden;
+  }
+
+  .docs-header-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 1rem 16px 1rem;
+  }
+
+  .docs-title-badge {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .docs-layout-container {
+    padding: 0 1rem 64px 1rem;
+  }
+
+  .docs-sidebar {
+    padding: 20px;
+    border-radius: 1rem;
+    min-width: 0;
+  }
+
   .docs-main-content {
-    padding: 24px;
+    padding: 20px;
+    border-radius: 1rem;
+    width: 100%;
   }
 }
 
@@ -2769,6 +2801,7 @@ button {
 .docs-article {
   max-width: 800px;
   margin: 0 auto;
+  min-width: 0;
 }
 
 .docs-article-header {
@@ -2781,6 +2814,7 @@ button {
   color: #ffffff;
   margin: 0 0 16px 0;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .docs-lead-paragraph {
@@ -3178,6 +3212,12 @@ button {
   font-size: 0.875rem;
 }
 
+.docs-article > .docs-table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .docs-table th {
   background: rgba(255, 255, 255, 0.03);
   padding: 12px 16px;
@@ -3410,6 +3450,7 @@ button {
   overflow: hidden;
   background: rgba(10, 10, 15, 0.4);
   backdrop-filter: blur(16px);
+  min-width: 0;
 }
 
 .doc-tabs-header {
@@ -3478,6 +3519,20 @@ button {
 
 /* Mobile adjustments for tabs */
 @media (max-width: 640px) {
+  .docs-article-header h1 {
+    font-size: 1.875rem;
+  }
+
+  .docs-article h2 {
+    font-size: 1.5rem;
+    overflow-wrap: anywhere;
+  }
+
+  .docs-diagram-container {
+    padding: 18px;
+    border-radius: 1rem;
+  }
+
   .doc-tabs-header {
     padding: 0.25rem;
   }

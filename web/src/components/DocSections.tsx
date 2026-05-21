@@ -79,6 +79,25 @@ export function ArchitectureDoc() {
             <li><strong>Parallel Residuals:</strong> Сигнал проходит сквозь 30+ слоев без затухания.</li>
             <li><strong>XQuant-CL:</strong> Экстремальное квантование KV-кэша в INT8.</li>
           </ul>
+
+          <h3>Как читать архитектуру на практике</h3>
+          <p>
+            Каждый слой решает две независимые задачи: attention ищет связи между токенами, а FFN/MoE преобразует найденный контекст
+            в новые признаки. Остаточные связи сохраняют исходный сигнал, поэтому даже глубокая модель не теряет информацию из ранних слоев.
+          </p>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Компонент</th><th>Что делает</th><th>Почему важен локально</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>RMSNorm</td><td>Стабилизирует масштаб активаций</td><td>Меньше NaN и резких скачков loss</td></tr>
+                <tr><td>GQA</td><td>Делит KV-головы между несколькими Query</td><td>Сильно снижает память KV-кэша</td></tr>
+                <tr><td>MoE</td><td>Включает только часть экспертов на токен</td><td>Больше параметров без линейного роста FLOPs</td></tr>
+                <tr><td>Weight Tying</td><td>Связывает embedding и output head</td><td>Экономит параметры и улучшает согласованность словаря</td></tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )
     },
@@ -112,6 +131,17 @@ if self.n_rep > 1:
     k = k.repeat_interleave(self.n_rep, dim=1)
     v = v.repeat_interleave(self.n_rep, dim=1)
 y = F.scaled_dot_product_attention(q, k, v, is_causal=is_causal)`} language="python" />
+
+          <h3>3. Weight Tying без двойного обновления</h3>
+          <p>Входные и выходные веса физически указывают на одну матрицу. Оптимайзер должен видеть ее один раз, иначе градиент будет применяться дважды.</p>
+          <CodeBlock code={`# В TolstoyLLM_v5.__init__
+self.tok_embeddings = nn.Embedding(vocab_size, n_embd)
+self.output = nn.Linear(n_embd, vocab_size, bias=False)
+self.output.weight = self.tok_embeddings.weight
+
+# В configure_optimizers
+unique_params = {id(p): p for p in self.parameters()}
+optimizer = AdamW(unique_params.values(), lr=learning_rate)`} language="python" />
         </>
       )
     },
@@ -130,6 +160,11 @@ y = F.scaled_dot_product_attention(q, k, v, is_causal=is_causal)`} language="pyt
           
           <h3>Grouped Query Attention (GQA)</h3>
           <Math formula="N_{\text{rep}} = N_{\text{head}} / N_{\text{kv\_head}}" block={true} />
+
+          <h3>Цена словаря и связанный выход</h3>
+          <p>Без Weight Tying модель хранит две большие матрицы: embedding и LM head. Связывание весов убирает одну из них:</p>
+          <Math formula="\text{Params}_{saved} = |V| \cdot d_{model}" block={true} />
+          <p>Для словаря 32k и скрытого размера 2048 это около 65 млн параметров, которые не нужно хранить и обновлять отдельно.</p>
         </>
       )
     },
@@ -146,6 +181,9 @@ y = F.scaled_dot_product_attention(q, k, v, is_causal=is_causal)`} language="pyt
           
           <h3>Что такое QK-Norm?</h3>
           <p>Это новейшая практика применения RMSNorm к проекциям Query и Key до применения RoPE. Это предотвращает взрыв логитов внимания на больших моделях.</p>
+
+          <h3>Когда стоит отключать MoE?</h3>
+          <p>Для самых маленьких пресетов и CPU-экспериментов dense-режим проще диагностировать. Для GPU-обучения и больших корпусов MoE обычно выгоднее: он добавляет емкость без такого же роста времени инференса.</p>
         </>
       )
     }
@@ -200,6 +238,20 @@ export function CliGuideDoc() {
 
           <h3>Системный монитор (Меню [4])</h3>
           <p>Отображает: Версию PyTorch, статус CUDA, поддержку FlashAttention, JIT-компиляцию, а также использование RAM/VRAM.</p>
+
+          <h3>Какие файлы появляются после каждого этапа</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Этап</th><th>Артефакты</th><th>Для чего нужны</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Подготовка данных</td><td><code>custom_tokenizer.pkl</code>, <code>dataset_tokens.pkl</code></td><td>Словарь и уже закодированный корпус</td></tr>
+                <tr><td>Обучение</td><td><code>model.pth</code>, <code>*_tokenizer.pkl</code></td><td>Веса модели и привязанный токенизатор</td></tr>
+                <tr><td>Чат</td><td>История консольной сессии</td><td>Проверка качества, температуры и повторов</td></tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )
     },
@@ -215,6 +267,11 @@ export function CliGuideDoc() {
             <li><strong>Архив Corus:</strong> Доступ к 21 датасету в один клик (Wikipedia, Lenta.ru, Habr).</li>
           </ul>
           <AlertBox type="info" title="Нормализация">При импорте автоматически работает очистка от Unicode-мусора и нормализация пробелов.</AlertBox>
+          <p>
+            Для JSON и XML CLI извлекает строковые значения рекурсивно, поэтому можно импортировать экспорт мессенджера,
+            дамп статей или вложенную коллекцию документов без предварительного превращения в TXT.
+          </p>
+          <AlertBox type="warning" title="PDF со сканами">PDF без текстового слоя не распознается автоматически. Перед импортом такого файла нужен OCR.</AlertBox>
           <CodeBlock code="python tolstoy_cli.py prepare --input_path ./data/books/" language="bash" />
         </>
       )
@@ -239,6 +296,20 @@ export function CliGuideDoc() {
               </tbody>
             </table>
           </div>
+          <h3>Какие оптимизации включать</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Опция</th><th>Когда включать</th><th>Компромисс</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>GaLore</td><td>Модель не помещается по optimizer state</td><td>Небольшая настройка rank/update_proj_gap</td></tr>
+                <tr><td>Muon</td><td>Нужна стабильная сходимость матриц</td><td>Оверхед матричных операций</td></tr>
+                <tr><td>Speculative heads</td><td>Планируется быстрый чат</td><td>Около 15% доп. работы при обучении</td></tr>
+                <tr><td>int8kv</td><td>Длинный контекст при инференсе</td><td>Минимальная ошибка квантования KV</td></tr>
+              </tbody>
+            </table>
+          </div>
           <CodeBlock code="python tolstoy_cli.py train --preset chat --use_galore --use_muon --epochs 5" language="bash" />
         </>
       )
@@ -253,6 +324,9 @@ export function CliGuideDoc() {
           
           <h3>Ошибка чтения файлов</h3>
           <p>Убедитесь, что кодировка UTF-8 или CP1251. Для PDF/DOCX должны быть установлены библиотеки <code>PyPDF2</code> и <code>python-docx</code>.</p>
+
+          <h3>Модель отвечает бессвязно после обучения</h3>
+          <p>Сначала проверьте, что чат загрузил токенизатор, созданный вместе с конкретным чекпоинтом. Затем снизьте <code>temperature</code> до 0.4 и увеличьте объем чистого корпуса.</p>
         </>
       )
     }
@@ -296,6 +370,15 @@ export function TrainingDoc() {
               <div className="flow-node output-node">Weight Update + Step Scheduler</div>
             </div>
           </div>
+
+          <h3>Что происходит на одном шаге обучения</h3>
+          <ol>
+            <li>DataLoader заранее подготавливает батч токенов и переносит его в pinned memory.</li>
+            <li>Forward pass считает логиты и auxiliary loss от MoE, если эксперты включены.</li>
+            <li>Cross-Entropy сравнивает предсказания со следующими токенами корпуса.</li>
+            <li>Gradient clipping ограничивает экстремальные градиенты перед optimizer step.</li>
+            <li>Scheduler обновляет learning rate по фазе OneCycleLR.</li>
+          </ol>
         </>
       )
     },
@@ -321,6 +404,21 @@ export function TrainingDoc() {
           <CodeBlock code={`# 5 шагов ортогонализации Muon
 for _ in range(ns_steps):
     V = (3.0 * V - V @ V.T @ V) * 0.5`} language="python" />
+
+          <h3>Как выбрать GaLore rank</h3>
+          <p>Rank управляет размером подпространства, в котором оптимизируется градиент. Малый rank сильнее экономит память, большой rank точнее повторяет AdamW.</p>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Сценарий</th><th>Rank</th><th>Комментарий</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Экстренная экономия VRAM</td><td>64</td><td>Хорошо для первых экспериментов</td></tr>
+                <tr><td>Баланс качества и памяти</td><td>128</td><td>Безопасный дефолт</td></tr>
+                <tr><td>Большой корпус и мощная GPU</td><td>256</td><td>Ближе к полному AdamW</td></tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )
     },
@@ -341,6 +439,11 @@ for _ in range(ns_steps):
             <li><strong>Peak:</strong> Максимальная скорость обучения.</li>
             <li><strong>Decay:</strong> Затухание до нуля для фиксации знаний.</li>
           </ul>
+          <h3>DataLoader без простоя GPU</h3>
+          <p><code>pin_memory=True</code> и несколько workers позволяют CPU готовить следующий батч, пока GPU занят текущим. Это уменьшает паузы между итерациями и делает ETA более честным.</p>
+
+          <h3>Gradient Clipping</h3>
+          <p>Ограничение нормы градиента защищает от редких, но разрушительных всплесков loss. Особенно полезно при маленьких корпусах и высоком learning rate.</p>
         </>
       )
     },
@@ -357,6 +460,9 @@ for _ in range(ns_steps):
           
           <h3>Влияет ли torch.compile на качество?</h3>
           <p>Нет, только на скорость. Это JIT-компиляция, переписывающая код под конкретную видеокарту.</p>
+
+          <h3>Когда останавливать обучение вручную?</h3>
+          <p>Если <code>val_loss</code> не улучшается несколько проверок подряд, а примеры генерации становятся более повторяющимися, продолжение эпох обычно только усиливает переобучение.</p>
         </>
       )
     }
@@ -393,6 +499,20 @@ export function TokenizerDoc() {
             <li><strong>Delta-Update:</strong> Локальный пересчет частот без сканирования всего корпуса.</li>
             <li><strong>Lazy Priority Heap:</strong> Очередь с «фантомными» записями для выбора максимума за <Math formula="O(\log M)" />.</li>
           </ul>
+          <h3>Эволюция версий</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Поколение</th><th>Идея</th><th>Главная проблема</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>v1-v3</td><td>Посимвольная токенизация</td><td>Слишком длинные последовательности</td></tr>
+                <tr><td>v4-v6</td><td>Классический BPE</td><td>Повторный полный проход по корпусу</td></tr>
+                <tr><td>v7-v9</td><td>Regex и индексация</td><td>Переаллокации Python-списков</td></tr>
+                <tr><td>v10</td><td>Linked arrays + lazy heap</td><td>Ограничение в основном скоростью диска</td></tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )
     },
@@ -415,6 +535,17 @@ for p1 in positions:
     tokens[p2] = -1 # "Убиваем" токен
     next_idx[p1] = next_p
     if next_p != -1: prev_idx[next_p] = p1`} language="python" />
+
+          <h3>Эффективное кодирование слова</h3>
+          <p>Во время инференса BPE не перебирает весь словарь. Он кладет возможные слияния слова в min-heap по рангу и применяет самые ранние merge-операции.</p>
+          <CodeBlock code={`def _encode_word(self, word):
+    heap = build_rank_heap(word)
+    while heap:
+        rank, i = heapq.heappop(heap)
+        if pair_is_still_alive(i):
+            merge_pair_in_place(i)
+            push_new_neighbor_pairs(i, heap)
+    return collect_alive_tokens()`} language="python" />
         </>
       )
     },
@@ -426,6 +557,10 @@ for p1 in positions:
           <h3>Метрики качества</h3>
           <p><strong>Фертильность (Fertility):</strong> <Math formula="F = \sum T_i / W" />. Идеал для русского языка: 1.1 – 1.6.</p>
           <p><strong>Коэффициент сжатия:</strong> Отношение байт текста к токенам. Наш результат: 6.0 – 7.5 байт/токен.</p>
+
+          <h3>Влияние vocab size на модель</h3>
+          <p>Слишком маленький словарь удлиняет последовательность, слишком большой раздувает embedding и output head.</p>
+          <Math formula="\text{Params}_{vocab} = |V| \cdot d_{model}" block={true} />
           
           <h3>Потребление RAM (est.)</h3>
           <div className="docs-table-wrapper">
@@ -456,6 +591,9 @@ for p1 in positions:
           
           <h3>Зачем нужен dataset_tokens.pkl?</h3>
           <p>Это «переваренный» text. Нейросеть начинает обучение мгновенно, не тратя время на токенизацию при каждом запуске.</p>
+
+          <h3>Как понять, что vocab size выбран плохо?</h3>
+          <p>Если фертильность выше 3.0, словарь слишком мал или корпус прочитан с ошибками. Если словарь огромный, а корпус маленький, редкие токены почти не обучатся и будут шуметь в генерации.</p>
         </>
       )
     }
@@ -494,6 +632,12 @@ export function RoPEYaRNDoc() {
           <AlertBox type="tip" title="Преимущество">
             В отличие от обычных позиций, RoPE сохраняет относительную дистанцию, что феноменально улучшает понимание лингвистики.
           </AlertBox>
+          <h3>Где RoPE особенно заметен</h3>
+          <ul>
+            <li><strong>Диалоги:</strong> модель лучше связывает реплики с предыдущим контекстом.</li>
+            <li><strong>Код и списки:</strong> сохраняются вложенность, порядок аргументов и структура блоков.</li>
+            <li><strong>Длинная проза:</strong> персонажи и события меньше «плывут» на дальних позициях.</li>
+          </ul>
         </>
       )
     },
@@ -514,6 +658,12 @@ export function RoPEYaRNDoc() {
     freqs = torch.outer(t, freqs).float()
     return torch.polar(torch.ones_like(freqs), freqs)`} language="python" />
           <p>Умножение комплексных чисел в <code>apply_rotary_emb</code> вращает векторы Query и Key в 2D-плоскостях.</p>
+          <CodeBlock code={`def apply_rotary_emb(q, k, freqs_cis):
+    q_complex = torch.view_as_complex(q.float().reshape(*q.shape[:-1], -1, 2))
+    k_complex = torch.view_as_complex(k.float().reshape(*k.shape[:-1], -1, 2))
+    q_out = torch.view_as_real(q_complex * freqs_cis).flatten(-2)
+    k_out = torch.view_as_real(k_complex * freqs_cis).flatten(-2)
+    return q_out.type_as(q), k_out.type_as(k)`} language="python" />
         </>
       )
     },
@@ -528,6 +678,8 @@ export function RoPEYaRNDoc() {
           <h3>YaRN Экстраполяция</h3>
           <p>Позволяет читать длинные документы (до 8k-32k) без дообучения, сжимая углы вращения:</p>
           <Math formula="\theta_Y = \theta \cdot s^{\frac{d}{d-2}}" block={true} />
+          <p>Attention фактически видит относительную разность позиций:</p>
+          <Math formula="\langle R_m q, R_n k \rangle = f(q, k, m-n)" block={true} />
         </>
       )
     },
@@ -544,6 +696,9 @@ export function RoPEYaRNDoc() {
           
           <h3>Что такое NTK-Aware Scaling?</h3>
           <p>Это метод изменения частот RoPE так, чтобы высокие частоты (короткие связи) сохранялись точно, а низкие (длинный контекст) плавно растягивались.</p>
+
+          <h3>Как выбирать rope_scaling?</h3>
+          <p>Начинайте с 1.0 для обычного контекста. Для экспериментов с 8k+ увеличивайте scaling постепенно и проверяйте качество на длинных документах, а не только на коротких промптах.</p>
         </>
       )
     }
@@ -588,6 +743,18 @@ export function MoEDoc() {
             </div>
           </div>
           <AlertBox type="tip" title="Масштабируемость">Модель может иметь в 4 раза больше знаний, сохраняя скорость инференса маленькой сети.</AlertBox>
+          <h3>Dense FFN против Sparse MoE</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Подход</th><th>Память весов</th><th>FLOPs на токен</th><th>Когда использовать</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Dense</td><td>Ниже</td><td>Все нейроны активны</td><td>Малые пресеты и CPU</td></tr>
+                <tr><td>Sparse MoE</td><td>Выше</td><td>Только top-k экспертов</td><td>GPU и большой корпус</td></tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )
     },
@@ -609,6 +776,17 @@ export function MoEDoc() {
     def forward(self, x):
         gate, up = self.gate_up_proj(x).chunk(2, dim=-1)
         return self.w2(F.silu(gate) * up)`} language="python" />
+
+          <h3>Маршрутизация top-k экспертов</h3>
+          <CodeBlock code={`router_logits = self.gate(x)
+router_probs = F.softmax(router_logits, dim=-1)
+topk_weight, topk_idx = torch.topk(router_probs, k=2, dim=-1)
+topk_weight = topk_weight / topk_weight.sum(dim=-1, keepdim=True)
+
+# Каждый выбранный эксперт получает только свои токены
+for expert_id in range(num_experts):
+    mask = topk_idx == expert_id
+    expert_output = self.experts[expert_id](x[mask.any(dim=-1)])`} language="python" />
         </>
       )
     },
@@ -624,6 +802,7 @@ export function MoEDoc() {
           <p>Штрафует за неравномерное распределение нагрузки между экспертами:</p>
           <Math formula="L_{\text{aux}} = \alpha \cdot N \sum_{i=1}^N f_i \cdot P_i" block={true} />
           <p>Где <Math formula="f_i" /> — доля токенов, а <Math formula="P_i" /> — уверенность маршрутизатора.</p>
+          <p>Без этого штрафа маршрутизатор быстро находит «любимого» эксперта и перестает использовать остальные, что снижает фактическую емкость модели.</p>
         </>
       )
     },
@@ -640,6 +819,9 @@ export function MoEDoc() {
           
           <h3>Сколько VRAM ест MoE?</h3>
           <p>Веса всех 8 экспертов должны быть в памяти, но вычислительная нагрузка (FLOPs) остается как у маленькой модели.</p>
+
+          <h3>Почему top-2, а не top-1?</h3>
+          <p>Top-1 быстрее, но делает маршрутизацию хрупкой. Top-2 дает второму эксперту шанс компенсировать ошибку роутера и обычно улучшает качество без большого замедления.</p>
         </>
       )
     }
@@ -676,6 +858,13 @@ export function SpeculativeDoc() {
             Это ускоряет генерацию в <strong>1.8x – 2.4x</strong> без потери качества.
           </p>
           <AlertBox type="info" title="Zero-cost Quality">Если головы ошибаются, основная модель просто исправляет их. Качество всегда остается эталонным.</AlertBox>
+          <h3>Жизненный цикл одного шага</h3>
+          <ol>
+            <li>Основная модель строит скрытое состояние текущего контекста.</li>
+            <li>MTP-головы предлагают цепочку следующих токенов.</li>
+            <li>Основная модель проверяет предложенную цепочку параллельно.</li>
+            <li>Принятые токены добавляются в ответ, первый неверный заменяется эталонным выбором.</li>
+          </ol>
         </>
       )
     },
@@ -697,6 +886,13 @@ export function SpeculativeDoc() {
                 nn.Linear(n_embd, vocab_size)
             ) for _ in range(num_stages)
         ])`} language="python" />
+          <h3>Forward для нескольких горизонтов</h3>
+          <CodeBlock code={`def forward(self, hidden_states):
+    # hidden_states: [batch, time, n_embd]
+    stage_logits = []
+    for head in self.heads:
+        stage_logits.append(head(hidden_states))
+    return stage_logits  # predictions for t+1, t+2, t+3`} language="python" />
         </>
       )
     },
@@ -706,7 +902,7 @@ export function SpeculativeDoc() {
       content: (
         <>
           <h3>Параллельная верификация</h3>
-          <p>За один Forward Pass we вычисляем вероятности для всей цепочки догадок:</p>
+          <p>За один Forward Pass мы вычисляем вероятности для всей цепочки догадок:</p>
           <Math formula="P_{main}(y_k | x_1, \dots, y_{k-1}) > \text{threshold}" block={true} />
           <p>Мы принимаем токены до тех пор, пока догадки совпадают с тем, что выбрала бы основная модель.</p>
         </>
@@ -725,6 +921,9 @@ export function SpeculativeDoc() {
           
           <h3>Можно ли использовать это на слабом GPU?</h3>
           <p>Да, это одна из лучших оптимизаций для ускорения инференса на домашних видеокартах.</p>
+
+          <h3>Нужно ли обучать модель заново?</h3>
+          <p>Да, чтобы использовать встроенные MTP-головы, их нужно включить во время обучения. Старые чекпоинты без таких голов можно запускать как обычно, но без ускорения.</p>
         </>
       )
     }
@@ -760,6 +959,20 @@ export function DatasetTutorialDoc() {
             <li><strong>20% Душа:</strong> Ваши личные тексты, логи чатов. Придает индивидуальность.</li>
             <li><strong>10% Логика:</strong> Код, стихи, задачи. Учит структурному мышлению.</li>
           </ul>
+          <h3>Матрица объема и пресета</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Пресет</th><th>Данные</th><th>Vocab</th><th>Цель</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Nano/Mini</td><td>50-200 КБ</td><td>1024-2048</td><td>Быстрый sanity-check</td></tr>
+                <tr><td>Small/Chat</td><td>1-5 МБ</td><td>4096-8192</td><td>Диалоги и стиль</td></tr>
+                <tr><td>Medium/Large</td><td>10-100 МБ</td><td>8192-16384</td><td>Устойчивое качество</td></tr>
+                <tr><td>XLarge</td><td>500 МБ+</td><td>32000+</td><td>Масштабный pretrain</td></tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )
     },
@@ -774,6 +987,13 @@ export function DatasetTutorialDoc() {
             <li><strong>PDF:</strong> Постраничное извлечение (через PyPDF2).</li>
             <li><strong>JSON:</strong> Рекурсивный поиск строковых полей (идеально для Telegram/WhatsApp).</li>
             <li><strong>DOCX, CSV, MD:</strong> Структурированное извлечение.</li>
+          </ul>
+          <h3>Категории данных и навыки</h3>
+          <ul>
+            <li><strong>Формальные тексты:</strong> грамматика, факты, нейтральный стиль.</li>
+            <li><strong>Художественная проза:</strong> метафоры, ритм, длинные зависимости.</li>
+            <li><strong>Разговорные логи:</strong> естественный диалог и короткие ответы.</li>
+            <li><strong>Технические документы:</strong> структура, причинность, списки и код.</li>
           </ul>
           <AlertBox type="tip" title="Corus">Используйте Меню [1]-&gt;[3] для скачивания Wikipedia или Lenta.ru в один клик.</AlertBox>
         </>
@@ -791,6 +1011,12 @@ export function DatasetTutorialDoc() {
             <li><strong>Дедупликация:</strong> Удаление повторяющихся файлов и кусков текста.</li>
           </ol>
           <AlertBox type="warning" title="OCR ошибки">Текст со сканера с ошибками типа «пpивeт» (английская 'p') может сломать токенизатор.</AlertBox>
+          <h3>Чего не стоит оставлять в корпусе</h3>
+          <ul>
+            <li>Повторяющиеся футеры страниц, рекламные вставки и навигационные меню.</li>
+            <li>Смешение языков без цели: модель начнет случайно переключаться между алфавитами.</li>
+            <li>Слишком много одного жанра: стиль станет узким и навязчивым.</li>
+          </ul>
         </>
       )
     },
@@ -807,6 +1033,9 @@ export function DatasetTutorialDoc() {
           
           <h3>Что такое дистилляция?</h3>
           <p>Использование ChatGPT для генерации «идеальных» примеров для вашей маленькой модели.</p>
+
+          <h3>Можно ли дообучить модель новым стилем?</h3>
+          <p>Да, но добавляйте новый стиль как часть смешанного корпуса. Если обучать только на узкой подборке, модель быстро забудет общий русский язык.</p>
         </>
       )
     }
@@ -844,6 +1073,19 @@ export function TrainingTutorialDoc() {
             <div className="muon-node"><strong>Decay</strong>Затухание</div>
           </div>
           <p>Мы используем <strong>OneCycleLR</strong>: сначала плавный разогрев, затем работа на пике и затухание для фиксации знаний.</p>
+          <h3>Выбор стартовой конфигурации</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Железо</th><th>Пресет</th><th>Опции</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>CPU / iGPU</td><td>nano</td><td>Короткий контекст, без MoE</td></tr>
+                <tr><td>RTX 3060 12GB</td><td>small/chat</td><td>GaLore + int8kv</td></tr>
+                <tr><td>RTX 3090/4090</td><td>medium/large</td><td>GaLore + Muon + speculative</td></tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )
     },
@@ -859,6 +1101,19 @@ export function TrainingTutorialDoc() {
           </ul>
           <AlertBox type="warning" title="Overfitting!">Если Train Loss падает, а Val Loss начал расти — модель начала «зубрить». Немедленно остановите обучение!</AlertBox>
           <p>Система <strong>Early Stopping</strong> сделает это автоматически при достижении лимита терпения.</p>
+          <h3>Как читать динамику</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Симптом</th><th>Вероятная причина</th><th>Действие</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Loss скачет вверх-вниз</td><td>LR слишком высок</td><td>Снизить learning rate</td></tr>
+                <tr><td>Train падает, Val растет</td><td>Переобучение</td><td>Остановить или добавить данных</td></tr>
+                <tr><td>Оба loss стоят</td><td>Мало емкости или плохой корпус</td><td>Проверить токенизацию и пресет</td></tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )
     },
@@ -873,6 +1128,12 @@ export function TrainingTutorialDoc() {
             <li><strong>Top-P:</strong> Фильтр мусора. 0.9 — стандарт.</li>
             <li><strong>Repetition Penalty:</strong> Ставьте 1.5 - 2.0 для борьбы с зацикливанием.</li>
           </ul>
+          <h3>Команды для типовых запусков</h3>
+          <CodeBlock code={`# Экономный запуск для 12GB VRAM
+python tolstoy_cli.py train --preset chat --use_galore --kv_cache int8kv
+
+# Более агрессивный запуск для 24GB VRAM
+python tolstoy_cli.py train --preset medium --use_galore --use_muon --use_speculative`} language="bash" />
           <CodeBlock code="python tolstoy_cli.py chat --temperature 0.4 --repetition_penalty 2.0" language="bash" />
         </>
       )
@@ -889,6 +1150,7 @@ export function TrainingTutorialDoc() {
           </ul>
           <AlertBox type="warning" title="Windows Pagefile">Убедитесь, что файл подкачки не менее 32 ГБ, иначе PyTorch может вылететь при загрузке тензоров.</AlertBox>
           <p>Используйте MSI Afterburner для ограничения Power Limit (70-80%), чтобы снизить нагрев на 15°C.</p>
+          <p>На CPU стоит уменьшить <code>block_size</code> и batch size: обучение будет медленным, но полезным для проверки корпуса и токенизатора.</p>
         </>
       )
     }
@@ -943,6 +1205,19 @@ export function OptimizersDoc() {
             </div>
           </div>
           <AlertBox type="tip" title="Q-GaLore">В Tolstoy-CLI реализовано квантование самих матриц проекции U и V в 8-bit, что еще сильнее снижает потребление VRAM.</AlertBox>
+          <h3>Сравнение с обычным AdamW</h3>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Оптимизатор</th><th>Память</th><th>Сильная сторона</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>AdamW</td><td>Высокая</td><td>Простой и предсказуемый baseline</td></tr>
+                <tr><td>8-bit AdamW</td><td>Средняя</td><td>Быстрая экономия без смены логики</td></tr>
+                <tr><td>GaLore</td><td>Низкая</td><td>Обучение больших матриц в низком ранге</td></tr>
+              </tbody>
+            </table>
+          </div>
         </>
       )
     },
@@ -967,6 +1242,7 @@ export function OptimizersDoc() {
             <strong>Результат:</strong> Модель учится на 30-40% быстрее, а нейроны учат уникальные признаки, 
             не дублируя работу друг друга.
           </p>
+          <AlertBox type="info" title="Область применения">Muon применяется к 2D-матрицам Linear-слоев. Bias, embedding и нормализации остаются на AdamW, потому что для них ортогонализация не имеет смысла.</AlertBox>
         </>
       )
     },
@@ -983,6 +1259,13 @@ for _ in range(5):
 # Восстановление масштаба градиента
 V = V * (g_norm_final / V_norm_final)`} language="python" />
           <p>Muon применяется только к 2D-матрицам весов слоев Linear.</p>
+          <CodeBlock code={`muon_params = []
+adamw_params = []
+for name, p in model.named_parameters():
+    if p.ndim == 2 and "tok_embeddings" not in name:
+        muon_params.append(p)
+    else:
+        adamw_params.append(p)`} language="python" />
         </>
       )
     },
@@ -995,6 +1278,8 @@ V = V * (g_norm_final / V_norm_final)`} language="python" />
           <p>GaLore экономит память, а Muon ускоряет сходимость. Это идеальный тандем для обучения моделей 7B+ на одной домашней видеокарте.</p>
           <h3>Замедляет ли Muon обучение?</h3>
           <p>На современных GPU RTX 30/40 оверхед от матричных умножений в Muon практически незаметен на фоне общего времени шага обучения.</p>
+          <h3>Какой rank выбрать для GaLore?</h3>
+          <p>Для первого запуска используйте 128. Если VRAM все еще не хватает, снижайте до 64; если качество хуже baseline и память позволяет, повышайте до 256.</p>
         </>
       )
     }
@@ -1035,6 +1320,8 @@ export function TokenizationTutorialDoc() {
               <div className="flow-node output-node">Итог: Оптимизированный словарь</div>
             </div>
           </div>
+          <h3>Мини-пример слияний</h3>
+          <p>Если в корпусе часто встречается слово «модель», BPE сначала выучит частые пары вроде <code>мо</code>, затем <code>дел</code>, а после нескольких итераций сможет хранить крупные осмысленные фрагменты.</p>
         </>
       )
     },
@@ -1057,6 +1344,8 @@ export function TokenizationTutorialDoc() {
             </table>
           </div>
           <AlertBox type="warning" title="Опасная зона">Слишком маленький словарь ({"<"}512) сделает последовательности чисел слишком длинными, и модель быстро исчерпает окно контекста.</AlertBox>
+          <h3>Специальные токены</h3>
+          <p>Служебные маркеры вроде начала текста, конца текста или разделителя диалога должны быть закреплены до обучения BPE, чтобы модель видела их как стабильные команды формата.</p>
         </>
       )
     },
@@ -1070,6 +1359,7 @@ export function TokenizationTutorialDoc() {
             <li><strong>Фертильность &gt; 3.0:</strong> Проверьте кодировку! Вероятно, текст считался некорректно.</li>
             <li><strong>Сжатие &lt; 1.5:</strong> Ваш словарь бесполезен, модель работает практически «по буквам».</li>
           </ul>
+          <p><strong>Фертильность</strong> показывает среднее число токенов на слово, а <strong>compression ratio</strong> показывает, сколько байт текста упаковано в один токен.</p>
           <p><strong>Совет:</strong> Если в датасете много английского (код, термины), увеличьте словарь на 15%, чтобы BPE успел выучить латинские слоги.</p>
         </>
       )
@@ -1088,6 +1378,7 @@ ids = tok.encode(text)
 print(f"ID токенов: {ids}")
 print(f"Разбивка: {[tok.decode([i]) for i in ids]}")`} language="python" />
           <p>Если слово "Привет" разбито как <code>['П', 'ри', 'в', 'ет']</code>, стоит увеличить словарь.</p>
+          <AlertBox type="tip" title="Быстрая проверка">Проверьте 10-20 слов из вашей предметной области. Если термины разваливаются на одиночные буквы, корпус или vocab size нужно пересмотреть.</AlertBox>
         </>
       )
     }
@@ -1120,6 +1411,18 @@ export function InteractionTutorialDoc() {
             <li><strong>Top-P:</strong> Фильтр мусора. Отсекает маловероятные варианты (рекомендуется 0.9).</li>
             <li><strong>Repetition Penalty:</strong> Борьба с «заеданием». Ставьте 1.5 – 2.0 для чистого вывода.</li>
           </ul>
+          <div className="docs-table-wrapper">
+            <table className="docs-table">
+              <thead>
+                <tr><th>Задача</th><th>Temperature</th><th>Top-P</th><th>Penalty</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Факты и пересказ</td><td>0.2-0.4</td><td>0.85</td><td>1.6</td></tr>
+                <tr><td>Диалог</td><td>0.5-0.8</td><td>0.9</td><td>1.5</td></tr>
+                <tr><td>Проза и стихи</td><td>0.8-1.1</td><td>0.95</td><td>1.2</td></tr>
+              </tbody>
+            </table>
+          </div>
           <AlertBox type="info" title="Speculative Decoding">Если модель обучалась со спекулятивными головами, включите их в чате для ускорения вывода до 2.4x.</AlertBox>
         </>
       )
@@ -1141,6 +1444,9 @@ export function InteractionTutorialDoc() {
             </tbody>
           </table>
           <p>Вы задаете ритм и тему — модель обязана продолжить в том же стиле.</p>
+          <CodeBlock code={`Диалог в стиле русской классической прозы.
+Пользователь: Почему герой не отвечает прямо?
+Ассистент: Потому что он боится назвать мысль, которая уже стала для него очевидной:`} language="text" />
         </>
       )
     },
@@ -1153,6 +1459,7 @@ export function InteractionTutorialDoc() {
           <p><strong>1. Few-Shot:</strong> Дайте 2-3 примера формата (Фрукт: Яблоко | Цвет: Красный...).</p>
           <p><strong>2. Roleplay:</strong> Опишите ситуацию: "Диалог профессора и студента в 19 веке...".</p>
           <p><strong>3. Chain of Thought:</strong> Заставьте модель рассуждать по шагам ("Задача: ... Решение: Сначала... Затем...").</p>
+          <p><strong>4. Задание формата:</strong> Начните JSON, таблицу или нумерованный список, если хотите получить структурированный вывод.</p>
         </>
       )
     },
@@ -1167,6 +1474,8 @@ export function InteractionTutorialDoc() {
           <p>Снизьте <code>Temperature</code> до 0.4 - 0.5. Высокие значения делают модель слишком непредсказуемой.</p>
           <h3>Отвечает на другом языке?</h3>
           <p>Это признак «загрязнения» датасета. Проверьте чистоту обучающих данных.</p>
+          <h3>Повторяет одну и ту же фразу?</h3>
+          <p>Поднимите <code>repetition_penalty</code>, снизьте <code>temperature</code> и проверьте, не было ли в корпусе большого количества повторяющихся шаблонов.</p>
         </>
       )
     }
