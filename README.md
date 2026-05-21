@@ -12,6 +12,22 @@
   <img src="docs/assets/cli_preview.png" alt="Tolstoy CLI Preview" width="800px">
 </div>
 
+---
+
+## 🌐 Лендинг
+
+Исходники лендинга вынесены в `web` и собраны на React + TypeScript + Vite.
+
+```bash
+cd web
+npm install
+npm run dev
+npm run build
+npm run deploy
+```
+
+Команда `npm run deploy` собирает проект и публикует содержимое `web/dist` в ветку `gh-pages`.
+
 [**Документация**](#-документация) | [**Возможности**](#-ключевые-возможности) | [**Быстрый старт**](#-быстрый-старт) | [**Архитектура**](#-архитектура-v5)
 
 </div>
