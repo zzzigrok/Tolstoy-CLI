@@ -1,185 +1,8 @@
-import { useEffect, useRef } from "react";
-
 export function HeroGraphic() {
-  const physicsWrapperRef = useRef<HTMLDivElement>(null);
-  const tetherGroupRef = useRef<SVGGElement>(null);
-  const tetherLineRef = useRef<SVGPathElement>(null);
-  const tetherEndRef = useRef<SVGCircleElement>(null);
-  const tetherEndRingRef = useRef<SVGCircleElement>(null);
-  const coreGlowStopRef = useRef<SVGStopElement>(null);
-  const panel1Ref = useRef<SVGGElement>(null);
-  const panel2Ref = useRef<SVGGElement>(null);
-  const panel3Ref = useRef<SVGGElement>(null);
-
-  useEffect(() => {
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
-    let smoothedDx = 0;
-    let smoothedDy = 0;
-    let smNormX = 0;
-    let smNormY = 0;
-    let animFrameId: number;
-    let isVisible = true;
-    let isMoving = true;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      if (!isMoving && isVisible) {
-        isMoving = true;
-        animateSVG(); // Restart loop
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-
-    // Performance optimization: Stop animation when not visible
-    const observer = new IntersectionObserver(
-      (entries) => {
-        isVisible = entries[0].isIntersecting;
-        if (isVisible && !isMoving) {
-          isMoving = true;
-          animateSVG();
-        }
-      },
-      { threshold: 0 }
-    );
-
-    if (physicsWrapperRef.current) {
-      observer.observe(physicsWrapperRef.current);
-    }
-
-    const animateSVG = () => {
-      const wrapper = physicsWrapperRef.current;
-      if (!wrapper || !isVisible) {
-        isMoving = false;
-        return;
-      }
-
-      const rect = wrapper.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-
-      const rawDx = centerX - mouseX;
-      const rawDy = centerY - mouseY;
-      const dist = Math.sqrt(rawDx * rawDx + rawDy * rawDy);
-
-      // Physics of elastic tension
-      const maxDist = 450;
-      let force = Math.max(0, 1 - dist / maxDist);
-      force = Math.pow(force, 1.5);
-
-      const maxDisplacement = 60;
-      const targetDx = dist > 0 ? (rawDx / dist) * force * maxDisplacement : 0;
-      const targetDy = dist > 0 ? (rawDy / dist) * force * maxDisplacement : 0;
-
-      const deltaDx = targetDx - smoothedDx;
-      const deltaDy = targetDy - smoothedDy;
-
-      const normX = (mouseX / window.innerWidth - 0.5) * 2;
-      const normY = (mouseY / window.innerHeight - 0.5) * 2;
-      const deltaNx = normX - smNormX;
-      const deltaNy = normY - smNormY;
-
-      // Stop loop if changes are negligible (settled state)
-      if (
-        Math.abs(deltaDx) < 0.05 &&
-        Math.abs(deltaDy) < 0.05 &&
-        Math.abs(deltaNx) < 0.005 &&
-        Math.abs(deltaNy) < 0.005
-      ) {
-        isMoving = false;
-        return;
-      }
-
-      smoothedDx += deltaDx * 0.1;
-      smoothedDy += deltaDy * 0.1;
-      smNormX += deltaNx * 0.1;
-      smNormY += deltaNy * 0.1;
-
-      const stretchVelocity = Math.sqrt(smoothedDx * smoothedDx + smoothedDy * smoothedDy);
-      const angle = Math.atan2(smoothedDy, smoothedDx);
-
-      const scaleX = 1 + stretchVelocity * 0.003;
-      const scaleY = 1 - stretchVelocity * 0.001;
-
-      // 3D Tilt calculations
-      const tiltX = smNormY * -20;
-      const tiltY = smNormX * 20;
-
-      // Combine displacement, tilt, and stretch
-      wrapper.style.transform = `perspective(1000px) translate3d(${smoothedDx}px, ${smoothedDy}px, 0) rotateX(${tiltX}deg) rotateY(${tiltY}deg) rotate(${angle}rad) scale(${scaleX}, ${scaleY}) rotate(${-angle}rad)`;
-
-      // Interactive tether line and core glow
-      const tetherGroup = tetherGroupRef.current;
-      const tetherLine = tetherLineRef.current;
-      const tetherEnd = tetherEndRef.current;
-      const tetherEndRing = tetherEndRingRef.current;
-      const coreGlowStop = coreGlowStopRef.current;
-
-      if (dist < 400 && dist > 20) {
-        if (tetherGroup) tetherGroup.style.opacity = String(force);
-
-        const svgScale = 300 / rect.width;
-        const localMouseX = 150 - rawDx * svgScale;
-        const localMouseY = 150 - rawDy * svgScale;
-
-        const cpX = 150 + (localMouseX - 150) * 0.5;
-        const cpY = 150;
-
-        if (tetherLine) {
-          tetherLine.setAttribute("d", `M150,150 Q${cpX},${cpY} ${localMouseX},${localMouseY}`);
-        }
-        if (tetherEnd) {
-          tetherEnd.setAttribute("cx", String(localMouseX));
-          tetherEnd.setAttribute("cy", String(localMouseY));
-        }
-        if (tetherEndRing) {
-          tetherEndRing.setAttribute("cx", String(localMouseX));
-          tetherEndRing.setAttribute("cy", String(localMouseY));
-        }
-
-        if (coreGlowStop) {
-          coreGlowStop.setAttribute("stop-opacity", (0.2 + force * 0.5).toFixed(2));
-          coreGlowStop.setAttribute("stop-color", force > 0.5 ? "#06b6d4" : "#7e22ce");
-        }
-      } else {
-        if (tetherGroup) tetherGroup.style.opacity = "0";
-        if (coreGlowStop) {
-          coreGlowStop.setAttribute("stop-opacity", "0.2");
-          coreGlowStop.setAttribute("stop-color", "#7e22ce");
-        }
-      }
-
-      // Parallax inner panels
-      const panel1 = panel1Ref.current;
-      const panel2 = panel2Ref.current;
-      const panel3 = panel3Ref.current;
-      if (panel1) panel1.style.transform = `translate3d(${smNormX * -10}px, ${smNormY * -10}px, 0)`;
-      if (panel2) panel2.style.transform = `translate3d(${smNormX * -15}px, ${smNormY * -15}px, 0)`;
-      if (panel3) panel3.style.transform = `translate3d(${smNormX * -5}px, ${smNormY * -5}px, 0)`;
-
-      animFrameId = requestAnimationFrame(animateSVG);
-    };
-
-    animateSVG();
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      cancelAnimationFrame(animFrameId);
-      observer.disconnect();
-    };
-  }, []);
-
   return (
     <div className="hero-graphic-container">
       <div className="hero-graphic-glow animate-pulse-slow"></div>
-      <div
-        ref={physicsWrapperRef}
-        id="hero-physics-wrapper"
-        className="hero-physics-wrapper"
-        style={{ transformStyle: "preserve-3d", willChange: "transform" }}
-      >
+      <div className="hero-physics-wrapper">
         <svg
           className="hero-main-svg animate-float overflow-visible"
           viewBox="0 0 300 300"
@@ -189,7 +12,7 @@ export function HeroGraphic() {
           <defs>
             <radialGradient id="core-glow" cx="0.5" cy="0.5" r="0.5">
               <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.5" />
-              <stop ref={coreGlowStopRef} id="core-glow-stop" offset="40%" stopColor="#7e22ce" stopOpacity="0.2" />
+              <stop offset="40%" stopColor="#7e22ce" stopOpacity="0.2" />
               <stop offset="100%" stopColor="#030305" stopOpacity="0" />
             </radialGradient>
             <linearGradient id="link-grad-1" x1="50" y1="150" x2="150" y2="140">
@@ -292,14 +115,8 @@ export function HeroGraphic() {
             </g>
           </g>
 
-          <g ref={tetherGroupRef} id="tether-group" style={{ opacity: 0, transition: "opacity 0.4s ease" }}>
-            <path ref={tetherLineRef} id="tether-line" d="M150,150 Q150,150 150,150" fill="none" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="4 6" className="animate-dash-flow" filter="url(#glow)" />
-            <circle ref={tetherEndRef} id="tether-end" cx="150" cy="150" r="3" fill="#fff" filter="url(#glow-strong)" />
-            <circle ref={tetherEndRingRef} id="tether-end-ring" cx="150" cy="150" r="8" fill="none" stroke="#06b6d4" strokeWidth="1" className="animate-pulse" />
-          </g>
-
           <g className="animate-float" style={{ animationDelay: "-1.5s" }}>
-            <g ref={panel1Ref} id="ui-panel-1" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
+            <g id="ui-panel-1" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
               <rect x="185" y="80" width="105" height="28" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(126, 34, 206, 0.4)" strokeWidth="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))" />
               <path d="M 185 94 L 175 100 L 185 106" fill="none" stroke="rgba(126, 34, 206, 0.4)" strokeWidth="1" />
               <text x="193" y="93" fontFamily="monospace" fontSize="6" fill="#c084fc" fontWeight="bold">Self-Attention</text>
@@ -309,7 +126,7 @@ export function HeroGraphic() {
           </g>
 
           <g className="animate-float" style={{ animationDelay: "-3.5s" }}>
-            <g ref={panel2Ref} id="ui-panel-2" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
+            <g id="ui-panel-2" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
               <rect x="10" y="90" width="75" height="32" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(6, 182, 212, 0.4)" strokeWidth="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))" />
               <path d="M 85 106 L 95 112 L 85 118" fill="none" stroke="rgba(6, 182, 212, 0.4)" strokeWidth="1" />
               <text x="16" y="102" fontFamily="monospace" fontSize="6" fill="#67e8f9" fontWeight="bold">TRAINING STATS</text>
@@ -321,7 +138,7 @@ export function HeroGraphic() {
           </g>
 
           <g className="animate-float" style={{ animationDelay: "-5s" }}>
-            <g ref={panel3Ref} id="ui-panel-3" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
+            <g id="ui-panel-3" className="ui-panel" style={{ transition: "transform 0.1s ease-out" }}>
               <rect x="175" y="210" width="90" height="22" rx="4" fill="rgba(20,20,30,0.85)" stroke="rgba(236, 72, 153, 0.4)" strokeWidth="1" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.5))" />
               <path d="M 175 221 L 165 210 L 175 200" fill="none" stroke="rgba(236, 72, 153, 0.4)" strokeWidth="1" />
               <text x="182" y="220" fontFamily="monospace" fontSize="5" fill="#f472b6" fontWeight="bold">BPE Tokenizer</text>
