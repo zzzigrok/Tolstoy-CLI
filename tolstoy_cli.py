@@ -16,7 +16,12 @@ import logging
 import shutil
 import random
 import json
-import xml.etree.ElementTree as ET
+try:
+    import defusedxml.ElementTree as ET
+    XML_SECURE = True
+except ImportError:
+    import xml.etree.ElementTree as ET
+    XML_SECURE = False
 import csv
 from time import sleep
 import sys
@@ -207,6 +212,8 @@ def extract_text_from_file(filepath):
             text = "\n".join([p.text for p in doc.paragraphs])
         # === ДОБАВЛЕННЫЙ БЛОК ДЛЯ XML ===
         elif ext == '.xml':
+            if not XML_SECURE:
+                print_warn("ВНИМАНИЕ: Используется стандартный XML-парсер. Установите 'defusedxml' для защиты от XXE.")
             try:
                 tree = ET.parse(filepath)
                 root = tree.getroot()
