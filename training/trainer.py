@@ -14,7 +14,7 @@ class RestrictedUnpickler(pickle.Unpickler):
 def safe_pickle_load(file):
     return RestrictedUnpickler(file).load()
 
-from torch.utils.data import Dataset, DataLoader, Subset
+from torch.utils.data import Dataset, DataLoader
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -331,23 +331,24 @@ class Trainer:
         return sum(losses) / len(losses) if losses else float('inf')
 
     def train(self, data, model_name, progress_callback=None, error_callback=None):
-        dataset = TokenDataset(data, self.config.block_size)
-        
         # === ИСПРАВЛЕНИЕ BUG-1: Разделение train/val без утечки данных ===
         use_pin_memory = (self.device.type == 'cuda')
-        train_size = int(0.9 * len(dataset))
-        train_subset = Subset(dataset, range(0, train_size))
-        val_subset = Subset(dataset, range(train_size, len(dataset)))
-        
+        train_size = int(0.9 * len(data))
+        train_data = data[:train_size]
+        val_data = data[train_size:]
+
+        train_dataset = TokenDataset(train_data, self.config.block_size)
+        val_dataset = TokenDataset(val_data, self.config.block_size)
+
         train_loader = DataLoader(
-            train_subset, 
+            train_dataset,
             batch_size=self.config.batch_size, 
             shuffle=True, 
             drop_last=True,
             pin_memory=use_pin_memory
         )
         val_loader = DataLoader(
-            val_subset, 
+            val_dataset,
             batch_size=self.config.batch_size,
             pin_memory=use_pin_memory
         )
