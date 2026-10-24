@@ -37,7 +37,7 @@
 ### 🛠️ Продвинутый CLI Интерфейс
 - **Умный импорт:** Поддержка `.txt`, `.md`, `.json`, `.csv`, `.xml`, `.pdf`, `.docx`.
 - **Интеграция Corus:** Мгновенный доступ к 21+ гигантскому русскому датасету (Wiki, Lenta, Taiga, Habr).
-- **Токенизатор v10:** Сверхбыстрый BPE (Trie + Linked Arrays), оптимизированный под кириллицу.
+- **Токенизатор v10 (Rust BPE):** Сверхбыстрый Byte-Level BPE на базе [`rust-bpe-tokenizer`](https://github.com/zzzigrok/rust-bpe-tokenizer) (PyO3 + Rayon + Bincode `.bpe`), оптимизированный под кириллицу.
 
 ---
 

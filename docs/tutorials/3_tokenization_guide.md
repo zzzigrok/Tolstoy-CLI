@@ -75,9 +75,10 @@ graph TD
 Вы можете вручную проверить, как токенизатор "видит" вашу фразу. В Python-консоли:
 ```python
 from tokenizers.bpe_tokenizer import BPETokenizer
-tok = BPETokenizer.load('custom_tokenizer.pkl')
+tok = BPETokenizer.load('custom_tokenizer.bpe')  # Поддерживает .bpe (Bincode) и legacy .pkl
 text = "Привет, как дела?"
-ids = tok.encode(text)
+ids = tok.encode(text, use_parallel=False)
+print(f"Размер словаря: {len(tok)} (слияний: {tok.merges_len})")
 print(f"ID токенов: {ids}")
 print(f"Разбивка: {[tok.decode([i]) for i in ids]}")
 ```

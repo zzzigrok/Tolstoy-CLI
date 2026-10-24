@@ -246,8 +246,8 @@ export function CliGuideDoc() {
                 <tr><th>Этап</th><th>Артефакты</th><th>Для чего нужны</th></tr>
               </thead>
               <tbody>
-                <tr><td>Подготовка данных</td><td><code>custom_tokenizer.pkl</code>, <code>dataset_tokens.pkl</code></td><td>Словарь и уже закодированный корпус</td></tr>
-                <tr><td>Обучение</td><td><code>model.pth</code>, <code>*_tokenizer.pkl</code></td><td>Веса модели и привязанный токенизатор</td></tr>
+                <tr><td>Подготовка данных</td><td><code>custom_tokenizer.bpe</code>, <code>dataset_tokens.pkl</code></td><td>Бинарный словарь Bincode (.bpe) и закодированный корпус</td></tr>
+                <tr><td>Обучение</td><td><code>model.pth</code>, <code>*_tokenizer.bpe</code></td><td>Веса модели и привязанный токенизатор (.bpe)</td></tr>
                 <tr><td>Чат</td><td>История консольной сессии</td><td>Проверка качества, температуры и повторов</td></tr>
               </tbody>
             </table>
@@ -509,7 +509,8 @@ export function TokenizerDoc() {
                 <tr><td>v1-v3</td><td>Посимвольная токенизация</td><td>Слишком длинные последовательности</td></tr>
                 <tr><td>v4-v6</td><td>Классический BPE</td><td>Повторный полный проход по корпусу</td></tr>
                 <tr><td>v7-v9</td><td>Regex и индексация</td><td>Переаллокации Python-списков</td></tr>
-                <tr><td>v10</td><td>Linked arrays + lazy heap</td><td>Ограничение в основном скоростью диска</td></tr>
+                <tr><td>v10</td><td>Linked arrays + lazy heap</td><td>Оверхед интерпретатора Python и GIL</td></tr>
+                <tr><td>v10 Rust</td><td>rust-bpe-tokenizer (PyO3 + Rayon + Bincode .bpe)</td><td>Ускорение 10-20x, работа без GIL, миграция с .pkl</td></tr>
               </tbody>
             </table>
           </div>
@@ -1372,7 +1373,7 @@ export function TokenizationTutorialDoc() {
           <h3>Увидеть глазами модели</h3>
           <p>Вы можете проверить разбивку фразы в Python-консоли:</p>
           <CodeBlock code={`from tokenizers.bpe_tokenizer import BPETokenizer
-tok = BPETokenizer.load('custom_tokenizer.pkl')
+tok = BPETokenizer.load('custom_tokenizer.bpe')  # Поддерживает .bpe и legacy .pkl
 text = "Привет, как дела?"
 ids = tok.encode(text)
 print(f"ID токенов: {ids}")
