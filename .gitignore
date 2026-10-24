@@ -159,6 +159,7 @@ cython_debug/
 node_modules/
 *.pth
 *.pkl
+*.bpe
 checkpoints/
 nano_*.pth
 docs/research/tokenizers_battle.txt

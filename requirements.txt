@@ -11,6 +11,11 @@
 #   • bfloat16 автокаст на CUDA/XPU
 torch>=2.2.0
 
+# ---------- Токенизация (Rust FFI / PyO3) ----------
+# Высокопроизводительный Byte-Level BPE токенизатор на Rust (Rayon, Bincode .bpe, миграция с .pkl)
+# Репозиторий: https://github.com/zzzigrok/rust-bpe-tokenizer
+rust-bpe-tokenizer>=0.1.2
+
 # ---------- CLI & Логирование ----------
 rich>=13.0.0          # Интерактивный интерфейс, таблицы, прогресс-бары, цветной вывод
 
