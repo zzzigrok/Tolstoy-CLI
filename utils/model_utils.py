@@ -78,6 +78,12 @@ def get_effective_config(selected_preset, data_size_tokens=None):
 def estimate_tokenizer_quality(tokenizer, sample_text: str) -> dict:
     tokens = tokenizer.encode(sample_text)
     words = sample_text.split()
-    return {'fertility': len(tokens) / len(words) if words else 0,
-            'compression_ratio': len(sample_text.encode('utf-8')) / len(tokens) if tokens else 0,
-            'num_tokens': len(tokens)}
+    vocab_size = len(tokenizer) if hasattr(tokenizer, '__len__') else len(getattr(tokenizer, 'vocab', {}))
+    merges_len = getattr(tokenizer, 'merges_len', max(0, vocab_size - 256))
+    return {
+        'fertility': len(tokens) / len(words) if words else 0,
+        'compression_ratio': len(sample_text.encode('utf-8')) / len(tokens) if tokens else 0,
+        'num_tokens': len(tokens),
+        'vocab_size': vocab_size,
+        'merges_len': merges_len,
+    }
