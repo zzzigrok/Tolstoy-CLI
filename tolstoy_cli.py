@@ -81,7 +81,10 @@ CORUS_DATASETS = {
 logging.getLogger("TolstoyTrainer").setLevel(logging.ERROR)
 
 from models.tolstoy_model import TolstoyLLM_v5
-from tokenizers.bpe_tokenizer import BPETokenizer
+from tokenizers.bpe_tokenizer import (
+    BPETokenizer, DEFAULT_TOKENIZER_BPE, DEFAULT_TOKENIZER_PKL,
+    resolve_tokenizer_path, __version__ as BPE_VERSION
+)
 from training.trainer import Trainer, TrainingConfig
 from utils.model_utils import clean_text, safe_pickle_load, get_effective_config, load_model_safe, estimate_tokenizer_quality
 from utils.device import get_optimal_device, get_system_stats, check_flash_attention, optimize_cpu_threads
@@ -129,7 +132,7 @@ BANNER_LINES = [
 
 def print_banner(animate=False):
     console.clear()
-    title_text = f"[bold {C_GOLD}] ⚡ XQuant • GaLore • Trie [/]"
+    title_text = f"[bold {C_GOLD}] ⚡ XQuant • GaLore • Rust BPE [/]"
     sub_text = f"[italic {C_DIM}]Powered by TolstoyLLM_v5 ✦ torch {torch.__version__}[/]"
     if animate:
         with Live(refresh_per_second=15, transient=False) as live:
@@ -410,10 +413,10 @@ def menu_prepare_data():
                     self.last_log = pct
 
         tokenizer = BPETokenizer()
-        tokens = tokenizer.train(cleaned_text, vocab_size=vocab_size, progress_bar=CLIProgressAdapter(), n_workers=0)
+        tokens = tokenizer.train(cleaned_text, vocab_size=vocab_size, progress_bar=CLIProgressAdapter())
         progress.update(task_bpe, completed=100, description=f"[{C_SUCCESS}]Компиляция завершена![/]")
 
-    tokenizer.save('custom_tokenizer.pkl')
+    tokenizer.save(DEFAULT_TOKENIZER_BPE)
     with open('dataset_tokens.pkl', 'wb') as f: pickle.dump(tokens, f)
 
     # Показываем метрики
@@ -422,13 +425,15 @@ def menu_prepare_data():
         table = Table(box=box.ROUNDED, border_style=C_DIM)
         table.add_column("Метрика", style=f"bold {C_ACCENT}")
         table.add_column("Значение", style="bold white")
+        table.add_row("Размер словаря (vocab_size)", f"{len(tokenizer):,}")
+        table.add_row("Выучено слияний (merges)", f"{tokenizer.merges_len:,}")
         table.add_row("Фертильность (токенов/слово)", f"{metrics['fertility']:.2f}")
         table.add_row("Коэфф. сжатия (байт/токен)", f"{metrics['compression_ratio']:.2f}")
-        table.add_row("Всего токенов", f"{metrics['num_tokens']:,}")
-        console.print(f"\n[{C_ACCENT}]📊 Качество токенизации:[/]")
+        table.add_row("Токенов в выборке", f"{metrics['num_tokens']:,}")
+        console.print(f"\n[{C_ACCENT}]📊 Качество токенизации (Rust BPE v{BPE_VERSION}):[/]")
         console.print(table)
 
-    print_step("Глобальный токенизатор сохранен: [bold white]custom_tokenizer.pkl[/bold white]")
+    print_step(f"Глобальный токенизатор сохранен (Bincode): [bold white]{DEFAULT_TOKENIZER_BPE}[/bold white]")
     print_step(f"Скомпилированные токены ({len(tokens):,} шт) сохранены: [bold white]dataset_tokens.pkl[/bold white]")
     Prompt.ask(f"\n[{C_DIM}]Нажмите Enter для продолжения...[/]")
 
@@ -437,7 +442,8 @@ def menu_prepare_data():
 # ==========================================
 def menu_train_model():
     print_section("ТРЕНИРОВОЧНЫЙ ЦИКЛ", "⚙️", C_MODEL)
-    if not os.path.exists('custom_tokenizer.pkl'):
+    global_tokenizer_path = resolve_tokenizer_path(fallback_name="custom_tokenizer")
+    if not global_tokenizer_path:
         print_warn("Сначала подготовьте датасет (Пункт 1), чтобы создать базовый токенизатор!"); sleep(2); return
 
     dataset_file = interactive_file_selector("Выберите сжатые токены:", ['.pkl'], icon="📦")
@@ -483,9 +489,9 @@ def menu_train_model():
     if stats.get('vram_total_gb'):
         console.print(f"[{C_DIM}]VRAM: {stats['vram_gb']:.1f}/{stats['vram_total_gb']:.1f} ГБ использовано[/]")
 
-    tokenizer = BPETokenizer.load('custom_tokenizer.pkl')
+    tokenizer = BPETokenizer.load(global_tokenizer_path)
     config = TrainingConfig(
-        vocab_size=len(tokenizer.vocab), n_embd=config_dict['n_embd'], n_head=config_dict['n_head'],
+        vocab_size=len(tokenizer), n_embd=config_dict['n_embd'], n_head=config_dict['n_head'],
         n_layer=config_dict['n_layer'], block_size=config_dict['block_size'],
         batch_size=config_dict.get('batch_size', 8), max_iters=config_dict.get('max_iters', 500),
         use_bf16=(device.type == 'cuda' and torch.cuda.is_bf16_supported()),
@@ -529,9 +535,9 @@ def menu_train_model():
             trainer.train(tensor_data, model_name=model_name, progress_callback=trainer_progress_callback)
             progress.update(task_train, completed=config.max_iters, description=f"[{C_SUCCESS}]Обучение завершено![/]")
 
-        dedicated_tok_path = f"{model_name}_tokenizer.pkl"
-        shutil.copyfile('custom_tokenizer.pkl', dedicated_tok_path)
-        console.print(f"\n[{C_SUCCESS}]🔒 Токенизатор жестко привязан: [bold white]{dedicated_tok_path}[/][/]")
+        dedicated_tok_path = f"{model_name}_tokenizer.bpe"
+        tokenizer.save(dedicated_tok_path)
+        console.print(f"\n[{C_SUCCESS}]🔒 Токенизатор жестко привязан (Bincode): [bold white]{dedicated_tok_path}[/][/]")
 
     except KeyboardInterrupt:
         print_warn("Обучение прервано оператором.")
@@ -545,16 +551,23 @@ def menu_chat():
     model_path = interactive_file_selector("Выберите весовые коэффициенты (.pth):", ['.pth'], icon="🧠")
     if not os.path.exists(model_path): return
 
-    dedicated_tokenizer_path = model_path.replace('.pth', '_tokenizer.pkl')
-    fallback_tokenizer_path = 'custom_tokenizer.pkl'
+    dedicated_bpe = model_path.replace('.pth', '_tokenizer.bpe')
+    dedicated_pkl = model_path.replace('.pth', '_tokenizer.pkl')
 
-    if os.path.exists(dedicated_tokenizer_path):
-        tokenizer_path = dedicated_tokenizer_path
-        console.print(f"[{C_SUCCESS}]✓ Найден родной токенизатор: [bold white]{escape(os.path.basename(tokenizer_path))}[/][/]")
-    elif os.path.exists(fallback_tokenizer_path):
-        tokenizer_path = fallback_tokenizer_path
+    if os.path.exists(dedicated_bpe):
+        tokenizer_path = dedicated_bpe
+        console.print(f"[{C_SUCCESS}]✓ Найден родной токенизатор (Bincode): [bold white]{escape(os.path.basename(tokenizer_path))}[/][/]")
+    elif os.path.exists(dedicated_pkl):
+        tokenizer_path = dedicated_pkl
+        console.print(f"[{C_SUCCESS}]✓ Найден родной токенизатор (legacy Pickle): [bold white]{escape(os.path.basename(tokenizer_path))}[/][/]")
+    elif os.path.exists(DEFAULT_TOKENIZER_BPE):
+        tokenizer_path = DEFAULT_TOKENIZER_BPE
         console.print(f"[{C_WARN} on #332b00] ⚠ ВНИМАНИЕ [/] Родной токенизатор не найден!")
-        console.print(f"[{C_DIM}]Используется глобальный [bold white]{fallback_tokenizer_path}[/].[/]")
+        console.print(f"[{C_DIM}]Используется глобальный [bold white]{DEFAULT_TOKENIZER_BPE}[/].[/]")
+    elif os.path.exists(DEFAULT_TOKENIZER_PKL):
+        tokenizer_path = DEFAULT_TOKENIZER_PKL
+        console.print(f"[{C_WARN} on #332b00] ⚠ ВНИМАНИЕ [/] Родной токенизатор не найден!")
+        console.print(f"[{C_DIM}]Используется глобальный legacy [bold white]{DEFAULT_TOKENIZER_PKL}[/].[/]")
     else:
         print_warn("Ни одного токенизатора не найдено!"); sleep(2); return
 
@@ -562,7 +575,7 @@ def menu_chat():
     tokenizer = BPETokenizer.load(tokenizer_path)
 
     with console.status(f"[bold {C_SUCCESS}]Анализ архитектуры {str(device).upper()}...[/]", spinner="aesthetic"):
-        conf = autodetect_model_architecture(model_path, len(tokenizer.vocab))
+        conf = autodetect_model_architecture(model_path, len(tokenizer))
         sleep(0.5)
 
     console.print(f"[{C_DIM}]Архитектура: [bold cyan]Tolstoy v5[/] | [bold white]{conf['n_layer']}[/] слоев | "
@@ -612,7 +625,7 @@ def menu_chat():
                             title_align="left", border_style=C_USER, box=box.ROUNDED, width=80, padding=(0, 2)))
 
         with console.status(f"[bold {C_MODEL}]Толстой генерирует...[/]", spinner="dots3"):
-            input_ids = tokenizer.encode(user_input)
+            input_ids = tokenizer.encode(user_input, use_parallel=False)
             
             # [ИСПРАВЛЕНО] Убрана деструктивная логика с заменой на 32. 
             # BPE-токенизатор не производит OOV-индексов по дизайну, 
@@ -691,7 +704,7 @@ def menu_developer():
             print_section("ТЕСТ ТОКЕНИЗАТОРА", "🧪", C_ACCENT)
             try:
                 from scripts.tester import test_tokenizer
-                tokenizer_name = Prompt.ask(f"[{C_ACCENT}]Имя токенизатора (без _tokenizer.pkl)[/]", default="custom")
+                tokenizer_name = Prompt.ask(f"[{C_ACCENT}]Имя токенизатора (без _tokenizer.bpe)[/]", default="custom")
                 test_tokenizer(tokenizer_name)
             except Exception as e:
                 print_warn(f"Ошибка при тестировании: {escape(str(e))}")
@@ -748,6 +761,12 @@ def menu_developer():
                 table.add_row("xformers", f"[{C_SUCCESS}]Установлен[/]", "Альтернативные Memory-Efficient ядра")
             except ImportError:
                 table.add_row("xformers", f"[{C_DIM}]Не установлен[/]", "Используется встроенный SDPA (PyTorch)")
+
+            try:
+                import rust_bpe_tokenizer
+                table.add_row("rust-bpe-tokenizer", f"[{C_SUCCESS}]Активен (v{rust_bpe_tokenizer.__version__})[/]", "Нативное Rust-ядро (PyO3 + Rayon + Bincode .bpe)")
+            except ImportError:
+                table.add_row("rust-bpe-tokenizer", f"[{C_ERROR}]Не установлен[/]", "Требуется pip install rust-bpe-tokenizer")
 
             console.print(table)
             Prompt.ask(f"\n[{C_DIM}]Нажмите Enter...[/]")
@@ -950,14 +969,11 @@ def menu_developer():
             model_path = interactive_file_selector("Выберите веса модели (.pth):", ['.pth'], icon="🧠")
             if os.path.exists(model_path):
                 try:
-                    tokenizer_path = model_path.replace('.pth', '_tokenizer.pkl')
-                    if not os.path.exists(tokenizer_path):
-                        tokenizer_path = 'custom_tokenizer.pkl'
+                    tokenizer_path = resolve_tokenizer_path(model_path, fallback_name="custom_tokenizer")
                     vocab_size = 0
-                    if os.path.exists(tokenizer_path):
-                        from tokenizers.bpe_tokenizer import BPETokenizer
+                    if tokenizer_path and os.path.exists(tokenizer_path):
                         tok = BPETokenizer.load(tokenizer_path)
-                        vocab_size = len(tok.vocab)
+                        vocab_size = len(tok)
                         
                     console.print(f"[{C_DIM}]Анализ конфигурации и чтение весов (mmap)...[/]")
                     conf = autodetect_model_architecture(model_path, vocab_size)
@@ -1095,6 +1111,7 @@ def menu_developer():
             
             env_table.add_section()
             env_table.add_row("[bold cyan]NLP & Токенизация[/]", "")
+            env_table.add_row("Rust-BPE-Tokenizer", get_pkg_version("rust-bpe-tokenizer"))
             env_table.add_row("Tokenizers", get_pkg_version("tokenizers"))
             env_table.add_row("Transformers", get_pkg_version("transformers"))
             env_table.add_row("TikToken", get_pkg_version("tiktoken"))
