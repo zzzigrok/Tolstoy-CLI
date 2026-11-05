@@ -2,18 +2,27 @@ import { useState, useEffect } from "react";
 import { Architecture, Corpus } from "./components/Sections";
 import { BookIcon, GitHubIcon } from "./components/Icons";
 import { HeroGraphic } from "./components/HeroGraphic";
+import { SiteHeader as Header } from "./components/SiteHeader";
 import { DocsView } from "./components/DocsView";
-import { navItems, statItems, philosophyPoints } from "./data/content";
+import { InteractiveLab } from "./components/InteractiveLab";
+import { statItems, philosophyPoints } from "./data/content";
 import "./styles.css";
 
 const githubUrl = "https://github.com/zzzigrok/Tolstoy-CLI";
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [copiedCmd, setCopiedCmd] = useState(false);
   const closeMenu = () => setMenuOpen(false);
 
+  const handleCopyCli = () => {
+    navigator.clipboard.writeText("python tolstoy_cli.py");
+    setCopiedCmd(true);
+    setTimeout(() => setCopiedCmd(false), 2000);
+  };
+
   const [currentPage, setCurrentPage] = useState<'landing' | 'docs'>(() => {
-    if (window.location.hash === "#docs") {
+    if (window.location.hash.startsWith("#docs")) {
       return "docs";
     }
     return "landing";
@@ -21,7 +30,7 @@ export default function App() {
 
   useEffect(() => {
     const handleHashChange = () => {
-      if (window.location.hash === "#docs") {
+      if (window.location.hash.startsWith("#docs")) {
         setCurrentPage("docs");
         window.scrollTo(0, 0);
       } else if (window.location.hash === "" || window.location.hash === "#top") {
@@ -29,6 +38,7 @@ export default function App() {
         window.scrollTo(0, 0);
       } else if (
         window.location.hash.startsWith("#about") ||
+        window.location.hash.startsWith("#lab") ||
         window.location.hash.startsWith("#developer") ||
         window.location.hash.startsWith("#philosophy") ||
         window.location.hash.startsWith("#architecture") ||
@@ -57,29 +67,83 @@ export default function App() {
       <main>
         <section className="hero section-shell" id="top">
           <div className="hero-copy">
-            <div className="hero-badge">
-              <span className="badge-dot"></span>
-              Образовательный Фреймворк
+            <div className="hero-badge-row">
+              <div className="hero-badge">
+                <span className="badge-dot animate-pulse"></span>
+                Образовательный Фреймворк
+              </div>
+              <span className="hero-version-pill">v7.0 Pro • SOTA Ядро</span>
             </div>
-            <h1 className="hero-title pb-2">
-              <span className="animated-gradient-text">Открывая</span> <br />
-              <span className="hero-italic">черный ящик</span> <br />
-              <span className="animated-gradient-text">нейросетей</span>
+
+            <h1 className="hero-title">
+              <span className="hero-title-line">Открывая</span>
+              <span className="hero-title-accent">чёрный ящик</span>
+              <span className="hero-title-line">нейросетей</span>
             </h1>
+
             <p className="hero-text">
-              Tolstoy-CLI — это архитектурная лаборатория. Создавайте, обучайте и понимайте механизмы работы Больших Языковых Моделей (LLM) с нуля. Синтез глубокого машинного обучения и богатства классической литературы.
+              <strong>Tolstoy-CLI</strong> — это архитектурная лаборатория полного цикла. Создавайте, обучайте и исследуйте Большие Языковые Модели (LLM) с нуля: от Rust BPE токенизации и Sparse MoE до экстремального сжатия GaLore и ортогонализации Muon на домашнем GPU.
             </p>
+
+            {/* Quick CLI Launch Bar */}
+            <div className="hero-cli-bar">
+              <div className="hero-cli-code">
+                <span className="hero-cli-prompt">$</span>
+                <code>python tolstoy_cli.py</code>
+              </div>
+              <button
+                type="button"
+                className={`hero-cli-copy-btn ${copiedCmd ? "copied" : ""}`}
+                onClick={handleCopyCli}
+                aria-label="Скопировать команду запуска"
+              >
+                {copiedCmd ? "✓ Скопировано" : "Копировать"}
+              </button>
+            </div>
+
             <div className="hero-actions">
-              <a className="button button-primary" href="#about">
-                Погрузиться
+              <a className="button button-primary hero-btn-primary" href="#lab">
+                <svg className="button-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Лаборатория v7
               </a>
-              <a className="button button-secondary" href="#architecture">
+              <a className="button button-secondary hero-btn-secondary" href="#docs">
+                <BookIcon className="button-icon" />
                 Документация
               </a>
+              <a className="button button-ghost hero-btn-ghost" href="#architecture">
+                Архитектура Ядра →
+              </a>
+            </div>
+
+            {/* SOTA Quick Specs Strip */}
+            <div className="hero-metrics-strip">
+              <div className="hero-metric-item">
+                <span className="hero-metric-val cyan">-80% VRAM</span>
+                <span className="hero-metric-lbl">GaLore SVD r=64</span>
+              </div>
+              <div className="hero-metric-divider" />
+              <div className="hero-metric-item">
+                <span className="hero-metric-val purple">8 Экспертов</span>
+                <span className="hero-metric-lbl">Sparse MoE Top-2</span>
+              </div>
+              <div className="hero-metric-divider" />
+              <div className="hero-metric-item">
+                <span className="hero-metric-val emerald">18.5× Быстрее</span>
+                <span className="hero-metric-lbl">Rust BPE v10</span>
+              </div>
+              <div className="hero-metric-divider" />
+              <div className="hero-metric-item">
+                <span className="hero-metric-val pink">2.5× Токенов/с</span>
+                <span className="hero-metric-lbl">Speculative MTP</span>
+              </div>
             </div>
           </div>
           <HeroGraphic />
         </section>
+
+        <InteractiveLab />
 
         <About />
         <Developer />
@@ -89,57 +153,6 @@ export default function App() {
       </main>
       <Footer />
     </>
-  );
-}
-
-type HeaderProps = {
-  menuOpen: boolean;
-  onToggle: () => void;
-  onNavigate: () => void;
-};
-
-function Header({ menuOpen, onToggle, onNavigate }: HeaderProps) {
-  return (
-    <header className="site-header fixed-nav">
-      <div className="nav-container">
-        <a className="brand" href="#top" onClick={onNavigate} aria-label="Tolstoy-CLI, наверх">
-          <svg className="brand-logo-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          <span>Tolstoy<span className="brand-suffix">-CLI</span></span>
-        </a>
-
-        <nav className="desktop-nav" aria-label="Основная навигация">
-          {navItems.map((item) => (
-            <a key={item.href} href={item.href} className="nav-link">
-              {item.label}
-            </a>
-          ))}
-        </nav>
-
-        <a className="github-link desktop-github" href={githubUrl} target="_blank" rel="noopener noreferrer">
-          <GitHubIcon className="github-icon" />
-          GitHub
-        </a>
-
-        <button className="menu-button" type="button" aria-expanded={menuOpen} aria-controls="mobile-nav" onClick={onToggle}>
-          <span />
-          <span />
-          <span />
-        </button>
-
-        <nav id="mobile-nav" className={menuOpen ? "mobile-nav open" : "mobile-nav"} aria-label="Мобильная навигация">
-          {navItems.map((item) => (
-            <a key={item.href} href={item.href} onClick={onNavigate}>
-              {item.label}
-            </a>
-          ))}
-          <a href={githubUrl} target="_blank" rel="noopener noreferrer" onClick={onNavigate}>
-            GitHub
-          </a>
-        </nav>
-      </div>
-    </header>
   );
 }
 
@@ -192,26 +205,40 @@ function Developer() {
 
       <div className="dev-terminal-card max-w-5xl mx-auto relative">
         <div className="dev-outer-border"></div>
-        <div className="terminal-content">
-          <div className="terminal-header">
-            <div className="terminal-controls">
-              <span className="control-btn red"></span>
-              <span className="control-btn yellow"></span>
-              <span className="control-btn green"></span>
+        <div className="terminal-content dev-content-v2">
+          <div className="terminal-header dev-header-v2">
+            <div className="dev-header-left">
+              <div className="terminal-controls">
+                <span className="control-btn red"></span>
+                <span className="control-btn yellow"></span>
+                <span className="control-btn green"></span>
+              </div>
+              <div className="dev-window-tabs">
+                <span className="dev-tab active">profile.md</span>
+                <span className="dev-tab">stack.toml</span>
+              </div>
             </div>
-            <div className="text-[11px] font-mono text-gray-500 flex items-center gap-2">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="dev-header-title">
+              <svg className="w-3.5 h-3.5 text-cyan-glow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              zzzigrok@tolstoy-lab: ~
+              <span>zzzigrok@tolstoy-lab: ~/architect</span>
             </div>
-            <div className="w-10"></div>
+            <div className="dev-header-right">
+              <span className="dev-env-pill">ZSH • UTF-8</span>
+            </div>
           </div>
-          <div className="terminal-body-grid">
-            {/* Left: Avatar SVG with typing hands */}
-            <div className="terminal-avatar-wrapper">
-              <div className="avatar-background-glow"></div>
-              <div className="avatar-svg-container group/avatar">
+          <div className="terminal-body-grid dev-body-grid-v2">
+            {/* Left: Cyber Identity Card + Avatar */}
+            <div className="dev-identity-panel">
+              <div className="terminal-avatar-wrapper">
+                <div className="avatar-background-glow"></div>
+                <svg className="dev-avatar-orbit-ring" viewBox="0 0 190 190" fill="none">
+                  <circle cx="95" cy="95" r="90" stroke="rgba(34, 211, 238, 0.25)" strokeWidth="1" strokeDasharray="6 6" />
+                  <circle cx="95" cy="5" r="3" fill="#22d3ee" />
+                  <circle cx="95" cy="185" r="2.5" fill="#c084fc" />
+                </svg>
+                <div className="avatar-svg-container group/avatar">
                 {/* Highly Detailed Cyber Avatar SVG */}
                 <svg className="typing-hands-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   {/* Background floating data streams (Visible on hover) */}
@@ -357,33 +384,98 @@ function Developer() {
               </div>
             </div>
 
-            {/* Right: Console Output */}
-            <div className="terminal-console-output font-mono">
-              <div className="console-line">
-                <span className="prompt-arrow">➜</span> <span className="prompt-tilde">~</span> <span className="prompt-cmd">whoami</span>
+              <div className="dev-identity-meta">
+                <div className="dev-identity-handle">@zzzigrok</div>
+                <div className="dev-identity-role">ML Researcher & Architect</div>
               </div>
-              <div className="console-response whoami-name">
-                zzzigrok
+
+              <div className="dev-neofetch-specs">
+                <div className="dev-spec-row">
+                  <span className="dev-spec-key">OS</span>
+                  <span className="dev-spec-val">Tolstoy Studio v7</span>
+                </div>
+                <div className="dev-spec-row">
+                  <span className="dev-spec-key">Stack</span>
+                  <span className="dev-spec-val">PyTorch • Rust • CUDA</span>
+                </div>
+                <div className="dev-spec-row">
+                  <span className="dev-spec-key">Focus</span>
+                  <span className="dev-spec-val">SOTA LLM Optimization</span>
+                </div>
+              </div>
+
+              <div className="terminal-status-badge dev-status-v2">
+                <span className="status-dot">●</span>Status: Coding v7 Pro
+              </div>
+            </div>
+
+            {/* Right: Console Dossier Output */}
+            <div className="terminal-console-output dev-console-v2 font-mono">
+              <div className="console-line">
+                <span className="prompt-arrow">➜</span>
+                <span className="prompt-tilde">~</span>
+                <span className="prompt-cmd">whoami</span>
+                <span className="dev-cmd-flag">--verbose</span>
+              </div>
+
+              <div className="dev-whoami-banner">
+                <span className="dev-whoami-title">zzzigrok</span>
+                <span className="dev-whoami-badge">Core Maintainer</span>
               </div>
               
               <div className="console-line pt-2">
-                <span className="prompt-arrow">➜</span> <span className="prompt-tilde">~</span> <span className="prompt-cmd">cat</span> profile.md
-              </div>
-              <div className="console-response profile-text">
-                <p>Разработчик, исследователь в области Machine Learning и создатель архитектуры <span className="text-cyan-glow">Tolstoy-CLI</span>.</p>
-                <p>Моя цель — разрушить барьер непонимания вокруг Больших Языковых Моделей (LLM). Этот проект был написан с нуля, чтобы показать, что ИИ — это не магия корпораций, а элегантная математика, доступная каждому.</p>
-                <p className="profile-quote">"Код должен читаться как хорошая литература. Именно поэтому мы тренируем сеть на Толстом."</p>
+                <span className="prompt-arrow">➜</span>
+                <span className="prompt-tilde">~</span>
+                <span className="prompt-cmd">cat</span>
+                <span className="dev-cmd-arg">profile.md</span>
               </div>
 
-              {/* Links */}
-              <div className="console-links pt-4">
-                <a href="https://github.com/zzzigrok" target="_blank" rel="noopener noreferrer" className="terminal-btn-link">
+              <div className="dev-profile-box">
+                <p>
+                  Разработчик, исследователь в области Machine Learning и создатель архитектуры{" "}
+                  <span className="text-cyan-glow font-bold">Tolstoy-CLI</span> и крейта{" "}
+                  <span className="text-purple-glow font-bold">rust-bpe-tokenizer</span>.
+                </p>
+                <p>
+                  Моя цель — разрушить барьер непонимания вокруг Больших Языковых Моделей (LLM). Этот проект был написан с нуля, чтобы показать, что ИИ — это не закрытая магия корпораций, а элегантная математика, доступная каждому на домашнем ПК.
+                </p>
+
+                <blockquote className="dev-quote-card">
+                  <span className="dev-quote-icon" aria-hidden="true">“</span>
+                  <p>
+                    Код должен читаться как хорошая литература. Именно поэтому мы тренируем сеть на Толстом.
+                  </p>
+                </blockquote>
+              </div>
+
+              <div className="console-line pt-2">
+                <span className="prompt-arrow">➜</span>
+                <span className="prompt-tilde">~</span>
+                <span className="prompt-cmd">ls</span>
+                <span className="dev-cmd-arg">./core-stack/</span>
+              </div>
+
+              <div className="dev-stack-chips">
+                <span className="dev-stack-chip cyan">Transformer v5/v7</span>
+                <span className="dev-stack-chip purple">GaLore Low-Rank SVD</span>
+                <span className="dev-stack-chip emerald">Muon NS-5 Ortho</span>
+                <span className="dev-stack-chip pink">Rust BPE + Rayon</span>
+                <span className="dev-stack-chip blue">Sparse MoE Top-2</span>
+                <span className="dev-stack-chip yellow">XQuant INT8 KV</span>
+              </div>
+
+              {/* Action Links */}
+              <div className="dev-actions-row">
+                <a href="https://github.com/zzzigrok" target="_blank" rel="noopener noreferrer" className="dev-action-btn primary">
                   <GitHubIcon className="github-icon" />
-                  <span>GitHub Profile</span>
+                  <span>GitHub Профиль</span>
                 </a>
-                <div className="terminal-status-badge">
-                  <span className="status-dot">●</span>Status: Coding
-                </div>
+                <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="dev-action-btn secondary">
+                  <svg className="github-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                  <span>Репозиторий проекта</span>
+                </a>
               </div>
             </div>
           </div>
@@ -404,54 +496,106 @@ function Philosophy() {
       <div className="philosophy-grid relative">
         <div className="philosophy-left-col">
           <div className="philosophy-title-box">
+            <div className="section-kicker-badge phil-kicker">
+              <svg className="kicker-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              Манифест • Open-Source AI
+            </div>
             <h2>Философия проекта</h2>
             <div className="phil-title-divider"></div>
             <p className="philosophy-lead">
-              Современный ИИ часто воспринимается как волшебство, доступное только мегакорпорациям. Наша цель — <strong>демократизация понимания</strong>.
+              Современный ИИ часто воспринимается как закрытое волшебство, доступное только мегакорпорациям. Наша цель — <strong>демократизация понимания</strong> через открытый код и фундаментальную математику.
             </p>
           </div>
 
           <div className="philosophy-cards-stack">
-            {philosophyPoints.map((point, index) => (
-              <div key={point.title} className={`glass-card phil-feature-card group ${index === 0 ? "purple" : "cyan"}`}>
-                <div className={`phil-icon-box ${index === 0 ? "purple" : "cyan"}`}>
-                  <svg className="phil-card-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    {index === 0 ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            {philosophyPoints.map((point, index) => {
+              const tone = point.tone || (index === 0 ? "purple" : index === 1 ? "cyan" : "emerald");
+              return (
+                <div key={point.title} className={`glass-card phil-feature-card phil-card-v2 group ${tone}`}>
+                  <div className={`phil-icon-box ${tone}`}>
+                    <svg className="phil-card-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      {index === 0 ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                      ) : index === 1 ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                      )}
+                    </svg>
+                  </div>
+                  <div className="phil-card-content">
+                    <div className="phil-card-top-row">
+                      <h4>{point.title}</h4>
+                      {point.badge && (
+                        <span className={`phil-step-badge ${tone}`}>{point.badge}</span>
+                      )}
+                    </div>
+                    <p>{point.text}</p>
+                    {point.tags && (
+                      <div className="phil-card-tags">
+                        {point.tags.map((tag) => (
+                          <span key={tag} className={`phil-tag ${tone}`}>{tag}</span>
+                        ))}
+                      </div>
                     )}
-                  </svg>
+                  </div>
                 </div>
-                <div className="phil-card-content">
-                  <h4>{point.title}</h4>
-                  <p>{point.text}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Right column: Feynman Quote */}
+        {/* Right column: Feynman Quote 2.0 */}
         <div className="philosophy-right-col">
           <div className="phil-quote-bg-glow"></div>
-          <div className="glass-card phil-quote-card hover:-translate-y-2">
-            <div className="inspiration-badge">
-              <span className="inspiration-dot"></span>
-              Inspiration
+          <div className="glass-card phil-quote-card phil-quote-card-v2">
+            <div className="phil-quote-top-bar">
+              <div className="phil-axiom-tag">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.871 4A17.926 17.926 0 003 12c0 2.874.673 5.59 1.871 8m14.13 0a17.926 17.926 0 001.87-8c0-2.874-.673-5.59-1.87-8M9 9h1.246a1 1 0 01.961.725l1.586 5.55a1 1 0 00.961.725H15m1-7h-.08a2 2 0 00-1.519.698L9.6 15.302A2 2 0 018.08 16H8" />
+                </svg>
+                <span>AXIOM // CALTECH 1988</span>
+              </div>
+              <div className="inspiration-badge">
+                <span className="inspiration-dot"></span>
+                Inspiration
+              </div>
             </div>
 
-            <svg className="phil-quote-marks-svg" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="phil-quote-marks-svg" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
             </svg>
             
             <div className="phil-quote-content">
               <p className="feynman-quote-text animated-gradient-text italic">
-                То, что я не могу создать, я не понимаю.
+                «То, что я не могу создать, я не понимаю.»
               </p>
-              <p className="feynman-quote-english font-mono">
-                // What I cannot create, I do not understand.
-              </p>
+              <div className="feynman-blackboard-box">
+                <span className="feynman-code-comment">// Original blackboard inscription:</span>
+                <p className="feynman-quote-english font-mono">
+                  "What I cannot create, I do not understand."
+                </p>
+              </div>
+            </div>
+
+            {/* First-Principles Engineering Chain */}
+            <div className="phil-principles-chain">
+              <div className="phil-chain-step">
+                <span className="chain-num">01</span>
+                <span className="chain-label">Тензоры и Математика</span>
+              </div>
+              <span className="phil-chain-arrow">→</span>
+              <div className="phil-chain-step">
+                <span className="chain-num">02</span>
+                <span className="chain-label">Код с нуля</span>
+              </div>
+              <span className="phil-chain-arrow">→</span>
+              <div className="phil-chain-step active">
+                <span className="chain-num">03</span>
+                <span className="chain-label">Глубокое понимание</span>
+              </div>
             </div>
             
             <div className="feynman-author-box">
@@ -459,8 +603,8 @@ function Philosophy() {
                 <div className="feynman-avatar-wrapper group">
                   <div className="feynman-avatar-glow"></div>
                   <svg className="feynman-avatar-spinner" viewBox="0 0 100 100" fill="none">
-                    <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="1" strokeDasharray="8 4"></circle>
-                    <circle cx="50" cy="2" r="2" fill="#06b6d4"></circle>
+                    <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="1.2" strokeDasharray="8 4"></circle>
+                    <circle cx="50" cy="2" r="2.5" fill="#06b6d4"></circle>
                   </svg>
                   <div className="feynman-img-container">
                     <img src="https://upload.wikimedia.org/wikipedia/en/4/42/Richard_Feynman_Nobel.jpg" alt="Ричард Фейнман" className="feynman-avatar-img" />
@@ -468,7 +612,8 @@ function Philosophy() {
                 </div>
                 <div className="feynman-author-info">
                   <h4>Ричард Фейнман</h4>
-                  <p>Нобелевский лауреат по физике</p>
+                  <p>Нобелевский лауреат по физике • КЭД</p>
+                  <span className="feynman-author-sub">Главный принцип архитектуры Tolstoy-CLI</span>
                 </div>
               </div>
               
@@ -532,10 +677,6 @@ function Philosophy() {
           
           <div className="phil-deco-circle-1"></div>
           <div className="phil-deco-circle-2"></div>
-          <div className="phil-deco-circle-3"></div>
-          <svg className="phil-deco-plus" fill="none" stroke="currentColor" strokeWidth="1">
-            <path d="M12 2v20m10-10H2" />
-          </svg>
         </div>
       </div>
     </section>
@@ -543,22 +684,136 @@ function Philosophy() {
 }
 
 function Footer() {
+  const [copiedClone, setCopiedClone] = useState(false);
+
+  const handleCopyClone = () => {
+    navigator.clipboard.writeText("git clone https://github.com/zzzigrok/Tolstoy-CLI.git");
+    setCopiedClone(true);
+    setTimeout(() => setCopiedClone(false), 2000);
+  };
+
   return (
-    <footer className="site-footer">
-      <div className="footer-container">
-        <a className="brand" href="#top" aria-label="Tolstoy-CLI, наверх">
-          <svg className="brand-logo-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          <span>Tolstoy<span>-CLI</span></span>
-        </a>
-        <p>
-          Образовательный фреймворк для изучения языковых моделей.<br />
-          &copy; 2026 Проект Tolstoy-CLI. Все права защищены (MIT License).
-        </p>
-        <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="footer-github-icon" aria-label="Открыть Tolstoy-CLI на GitHub">
-          <GitHubIcon className="github-icon" />
-        </a>
+    <footer className="tl-footer">
+      <div className="tl-footer-glow" aria-hidden="true" />
+      <div className="section-shell tl-footer-shell">
+        <div className="tl-footer-grid">
+          {/* Col 1: Brand & Status */}
+          <div className="tl-footer-brand-col">
+            <a className="tl-brand" href="#top" aria-label="Tolstoy-CLI, наверх">
+              <span className="tl-brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32" fill="none">
+                  <defs>
+                    <linearGradient id="tl-footer-brand-grad" x1="0" y1="0" x2="32" y2="32">
+                      <stop offset="0%" stopColor="#22d3ee" />
+                      <stop offset="55%" stopColor="#8b5cf6" />
+                      <stop offset="100%" stopColor="#f472b6" />
+                    </linearGradient>
+                  </defs>
+                  <rect x="1" y="1" width="30" height="30" rx="9" fill="rgba(9,13,26,0.9)" stroke="url(#tl-footer-brand-grad)" strokeWidth="1.5" />
+                  <path d="M16 9.5v13M16 9.5c-1.6-1-3.7-1.5-5.6-1.5-1.3 0-2.6.2-3.4.6v13c.8-.4 2.1-.6 3.4-.6 1.9 0 4 .5 5.6 1.5m0-13c1.6-1 3.7-1.5 5.6-1.5 1.3 0 2.6.2 3.4.6v13c-.8-.4-2.1-.6-3.4-.6-1.9 0-4 .5-5.6 1.5" stroke="url(#tl-footer-brand-grad)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+              <span className="tl-brand-text">
+                Tolstoy<span className="tl-brand-suffix">-CLI</span>
+              </span>
+              <span className="tl-brand-version">v7.0 Pro</span>
+            </a>
+
+            <p className="tl-footer-desc">
+              Открытая архитектурная лаборатория для создания, обучения и глубокого понимания Больших Языковых Моделей (LLM) с нуля на корпусе русской классики.
+            </p>
+
+            <div className="tl-footer-status">
+              <span className="tl-status-dot" aria-hidden="true" />
+              <span>SOTA Core v7 • PyTorch + Rust BPE v10</span>
+            </div>
+          </div>
+
+          {/* Col 2: Navigation */}
+          <div className="tl-footer-col">
+            <h4 className="tl-footer-heading">Разделы</h4>
+            <ul className="tl-footer-links">
+              <li><a href="#lab">Интерактивная Лаборатория</a></li>
+              <li><a href="#about">О проекте</a></li>
+              <li><a href="#architecture">Архитектура v7 Pro</a></li>
+              <li><a href="#corpus">Литературный корпус</a></li>
+              <li><a href="#philosophy">Философия проекта</a></li>
+              <li><a href="#developer">Об авторе</a></li>
+            </ul>
+          </div>
+
+          {/* Col 3: SOTA Technologies */}
+          <div className="tl-footer-col">
+            <h4 className="tl-footer-heading">Технологии ядра</h4>
+            <ul className="tl-footer-links">
+              <li><a href="#architecture">GaLore Low-Rank SVD</a></li>
+              <li><a href="#architecture">Sparse MoE (8x Top-2)</a></li>
+              <li><a href="#architecture">Оптимизатор Muon (NS-5)</a></li>
+              <li><a href="#architecture">Speculative MTP (2.5×)</a></li>
+              <li><a href="#architecture">XQuant-CL INT8 KV-Cache</a></li>
+              <li><a href="#docs">Полная документация →</a></li>
+            </ul>
+          </div>
+
+          {/* Col 4: Quick Clone & Links */}
+          <div className="tl-footer-col tl-footer-cta-col">
+            <h4 className="tl-footer-heading">Быстрый старт</h4>
+            <p className="tl-footer-subtext">
+              Клонируйте репозиторий и запустите интерактивную студию локально:
+            </p>
+            <div className="tl-footer-clone-box">
+              <code>git clone .../Tolstoy-CLI.git</code>
+              <button
+                type="button"
+                className={`tl-footer-copy-btn ${copiedClone ? "copied" : ""}`}
+                onClick={handleCopyClone}
+                aria-label="Скопировать git clone команду"
+              >
+                {copiedClone ? "✓" : "Copy"}
+              </button>
+            </div>
+
+            <div className="tl-footer-ext-buttons">
+              <a
+                href={githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="tl-footer-btn"
+              >
+                <GitHubIcon className="tl-github-icon" />
+                <span>GitHub Репозиторий</span>
+              </a>
+              <a
+                href="#docs"
+                className="tl-footer-btn secondary"
+              >
+                <BookIcon className="tl-github-icon" />
+                <span>Документация</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="tl-footer-bottom">
+          <div className="tl-footer-copy">
+            &copy; 2026 Проект <strong>Tolstoy-CLI</strong>. Открытый исходный код (MIT License). Автор:{" "}
+            <a href="https://github.com/zzzigrok" target="_blank" rel="noopener noreferrer" className="tl-footer-author">
+              @zzzigrok
+            </a>
+          </div>
+
+          <div className="tl-footer-right">
+            <div className="tl-footer-pills">
+              <span className="tl-footer-pill">PyTorch</span>
+              <span className="tl-footer-pill">Rust Rayon</span>
+              <span className="tl-footer-pill">CUDA / MPS</span>
+            </div>
+            <a href="#top" className="tl-back-top" aria-label="Наверх страницы">
+              Наверх ↑
+            </a>
+          </div>
+        </div>
       </div>
     </footer>
   );
